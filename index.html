@@ -1,0 +1,2435 @@
+<!DOCTYPE html>
+<html lang="ms" class="h-full">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistem Kokurikulum Pro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      fontFamily: { sans: ['DM Sans', 'sans-serif'], serif: ['DM Serif Display', 'serif'] },
+      colors: {
+        brand: { 50:'#f0fdf4',100:'#dcfce7',200:'#bbf7d0',300:'#86efac',400:'#4ade80',500:'#22c55e',600:'#16a34a',700:'#15803d',800:'#166534',900:'#14532d' }
+      },
+      animation: {
+        'fade-up': 'fadeUp .25s ease both',
+        'slide-in': 'slideIn .3s ease both',
+        'pulse-soft': 'pulseSoft 2s ease infinite',
+      },
+      keyframes: {
+        fadeUp: { from:{ opacity:0, transform:'translateY(10px)' }, to:{ opacity:1, transform:'translateY(0)' } },
+        slideIn: { from:{ opacity:0, transform:'translateX(-20px)' }, to:{ opacity:1, transform:'translateX(0)' } },
+        pulseSoft: { '0%,100%':{ opacity:1 }, '50%':{ opacity:.6 } },
+      }
+    }
+  }
+}
+</script>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: 'DM Sans', sans-serif; }
+  .page { display: none; }
+  .page.active { display: block; }
+  .nav-item.active .nav-indicator { opacity: 1; }
+  .nav-item.active { background: rgba(16,185,129,.12); }
+  .nav-item.active .nav-label { color: #10b981; }
+  .nav-item.active .nav-icon-wrap svg { color: #10b981; }
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+  .sidebar { transition: transform .3s ease; height: 100vh; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; z-index: 100; }
+  @media (max-width:1023px) {
+    .sidebar { position: fixed; z-index: 300 !important; transform: translateX(-100%); }
+    .sidebar.open { transform: translateX(0); }
+    .sidebar-overlay { display: block; }
+  }
+  @media (min-width:1024px) {
+    .sidebar { transform: translateX(0); }
+  }
+  .stat-card { position: relative; overflow: hidden; }
+  .stat-card::after { content:''; position:absolute; top:-30px; right:-30px; width:100px; height:100px; border-radius:50%; opacity:.06; }
+  .stat-card.blue::after { background:#3b82f6; }
+  .stat-card.emerald::after { background:#10b981; }
+  .stat-card.amber::after { background:#f59e0b; }
+  .stat-card.violet::after { background:#8b5cf6; }
+  .chart-wrap canvas { max-height: 240px; }
+  input:focus, select:focus, textarea:focus { outline: none; }
+  .upload-zone { transition: all .2s ease; }
+  .upload-zone.drag-over { border-color: #3b82f6 !important; background: #eff6ff !important; }
+  .modal-overlay { display: none; }
+  .modal-overlay.open { display: flex; }
+  .img-viewer { display: none; }
+  .img-viewer.open { display: flex; }
+  .toast { transform: translateY(120px); opacity: 0; transition: all .3s cubic-bezier(.34,1.56,.64,1); }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .table-row:hover { background: #f8fafc; }
+  @keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+  .active-pill { position: relative; }
+  .active-pill::before { content:''; position:absolute; left:0; top:50%; transform:translateY(-50%); width:3px; height:60%; border-radius:0 2px 2px 0; background:#10b981; }
+</style>
+</head>
+<body class="bg-slate-50 h-full">
+
+<!-- SIDEBAR OVERLAY (mobile) -->
+<div id="sidebar-overlay" class="fixed top-0 bottom-0 right-0 bg-slate-900/50 z-[250] hidden lg:hidden" style="left:256px" onclick="closeSidebar()"></div>
+
+<!-- ═══════════════════════════════ SIDEBAR ═══════════════════════════════ -->
+<aside id="sidebar" class="sidebar w-64 bg-slate-900 fixed top-0 left-0">
+  <!-- Brand -->
+  <div class="px-5 py-5 border-b border-slate-700/50">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-xl overflow-hidden flex-shrink-0 bg-white/10 flex items-center justify-center">
+        <img src="https://i.postimg.cc/G23tcFnW/Logo-SK-Adin.png" alt="Logo Sekolah" class="w-full h-full object-contain" onerror="this.style.display='none';this.parentElement.innerHTML='<svg class=\'w-5 h-5 text-emerald-400\' fill=\'none\' viewBox=\'0 0 24 24\' stroke-width=\'2\' stroke=\'currentColor\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' d=\'M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 01-.982-3.172M9.497 14.25a7.454 7.454 0 00.981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 007.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.25 9.71 2 12 2c2.291 0 4.545.25 6.75.721v1.515M19.75 4.236c.982.143 1.953.317 2.916.52a6.003 6.003 0 01-5.395 5.972M19.75 4.236V4.5a9.023 9.023 0 01-2.48 5.228\'></path></svg>'">
+      </div>
+      <div>
+        <div class="text-white font-semibold text-sm leading-tight">Kokurikulum Pro</div>
+        <div class="text-slate-400 text-[10px] mt-0.5">Sistem Pelaporan Sekolah</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Nav -->
+  <nav class="flex-1 min-h-0 overflow-y-auto px-3 py-4 space-y-0.5" style="-webkit-overflow-scrolling:touch;overscroll-behavior:contain;">
+
+    <div class="text-[9px] font-bold uppercase tracking-widest text-slate-500 px-3 mb-2">Utama</div>
+    <div class="nav-item active-pill rounded-lg px-3 py-2.5 flex items-center gap-3 cursor-pointer group transition-all duration-150 nav-item active" onclick="nav('dashboard',this)">
+      <div class="nav-icon-wrap"><svg class="w-4.5 h-4.5 text-slate-400 group-hover:text-emerald-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
+      <span class="nav-label text-slate-300 text-sm font-medium group-hover:text-emerald-400 transition-colors">Dashboard</span>
+    </div>
+
+    <div class="text-[9px] font-bold uppercase tracking-widest text-slate-500 px-3 pt-4 mb-2">Pengurusan</div>
+    <div class="nav-item active-pill rounded-lg px-3 py-2.5 flex items-center gap-3 cursor-pointer group transition-all duration-150" onclick="nav('murid',this)">
+      <div class="nav-icon-wrap"><svg class="w-4.5 h-4.5 text-slate-400 group-hover:text-emerald-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/></svg></div>
+      <span class="nav-label text-slate-300 text-sm font-medium group-hover:text-emerald-400 transition-colors">Senarai Murid</span>
+    </div>
+    <div class="nav-item active-pill rounded-lg px-3 py-2.5 flex items-center gap-3 cursor-pointer group transition-all duration-150" onclick="nav('import',this)">
+      <div class="nav-icon-wrap"><svg class="w-4.5 h-4.5 text-slate-400 group-hover:text-emerald-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg></div>
+      <span class="nav-label text-slate-300 text-sm font-medium group-hover:text-emerald-400 transition-colors">Import CSV</span>
+    </div>
+    <div class="nav-item active-pill rounded-lg px-3 py-2.5 flex items-center gap-3 cursor-pointer group transition-all duration-150" onclick="nav('unit',this)">
+      <div class="nav-icon-wrap"><svg class="w-4.5 h-4.5 text-slate-400 group-hover:text-emerald-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0012 9.75c-2.551 0-5.056.2-7.5.582V21"/></svg></div>
+      <span class="nav-label text-slate-300 text-sm font-medium group-hover:text-emerald-400 transition-colors">Unit Kokurikulum</span>
+    </div>
+
+    <div class="text-[9px] font-bold uppercase tracking-widest text-slate-500 px-3 pt-4 mb-2">Aktiviti</div>
+    <div class="nav-item active-pill rounded-lg px-3 py-2.5 flex items-center gap-3 cursor-pointer group transition-all duration-150" onclick="nav('aktiviti',this)">
+      <div class="nav-icon-wrap"><svg class="w-4.5 h-4.5 text-slate-400 group-hover:text-emerald-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"/></svg></div>
+      <span class="nav-label text-slate-300 text-sm font-medium group-hover:text-emerald-400 transition-colors">Aktiviti</span>
+    </div>
+    <div class="nav-item active-pill rounded-lg px-3 py-2.5 flex items-center gap-3 cursor-pointer group transition-all duration-150" onclick="nav('kehadiran',this)">
+      <div class="nav-icon-wrap"><svg class="w-4.5 h-4.5 text-slate-400 group-hover:text-emerald-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+      <span class="nav-label text-slate-300 text-sm font-medium group-hover:text-emerald-400 transition-colors">Rekod Kehadiran</span>
+    </div>
+    <div class="nav-item active-pill rounded-lg px-3 py-2.5 flex items-center gap-3 cursor-pointer group transition-all duration-150" onclick="nav('penyertaan',this)">
+      <div class="nav-icon-wrap"><svg class="w-4.5 h-4.5 text-slate-400 group-hover:text-emerald-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg></div>
+      <span class="nav-label text-slate-300 text-sm font-medium group-hover:text-emerald-400 transition-colors">Rekod Penyertaan</span>
+    </div>
+    <div class="nav-item active-pill rounded-lg px-3 py-2.5 flex items-center gap-3 cursor-pointer group transition-all duration-150" onclick="nav('pencapaian',this)">
+      <div class="nav-icon-wrap"><svg class="w-4.5 h-4.5 text-slate-400 group-hover:text-emerald-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 01-.982-3.172M9.497 14.25a7.454 7.454 0 00.981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 007.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.25 9.71 2 12 2c2.291 0 4.545.25 6.75.721v1.515M19.75 4.236c.982.143 1.953.317 2.916.52a6.003 6.003 0 01-5.395 5.972M19.75 4.236V4.5a9.023 9.023 0 01-2.48 5.228"/></svg></div>
+      <span class="nav-label text-slate-300 text-sm font-medium group-hover:text-emerald-400 transition-colors">Rekod Pencapaian</span>
+    </div>
+
+    <div class="text-[9px] font-bold uppercase tracking-widest text-slate-500 px-3 pt-4 mb-2">Dokumentasi</div>
+    <div class="nav-item active-pill rounded-lg px-3 py-2.5 flex items-center gap-3 cursor-pointer group transition-all duration-150" onclick="nav('galeri',this)">
+      <div class="nav-icon-wrap"><svg class="w-4.5 h-4.5 text-slate-400 group-hover:text-emerald-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"/></svg></div>
+      <span class="nav-label text-slate-300 text-sm font-medium group-hover:text-emerald-400 transition-colors">Galeri Gambar</span>
+    </div>
+    <div class="nav-item active-pill rounded-lg px-3 py-2.5 flex items-center gap-3 cursor-pointer group transition-all duration-150" onclick="nav('carian',this)">
+      <div class="nav-icon-wrap"><svg class="w-4.5 h-4.5 text-slate-400 group-hover:text-emerald-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 15.803 7.5 7.5 0 0016.803 15.803z"/></svg></div>
+      <span class="nav-label text-slate-300 text-sm font-medium group-hover:text-emerald-400 transition-colors">Carian Dokumentasi</span>
+    </div>
+
+    <div class="text-[9px] font-bold uppercase tracking-widest text-slate-500 px-3 pt-4 mb-2">Laporan</div>
+    <div class="nav-item active-pill rounded-lg px-3 py-2.5 flex items-center gap-3 cursor-pointer group transition-all duration-150" onclick="nav('statistik',this)">
+      <div class="nav-icon-wrap"><svg class="w-4.5 h-4.5 text-slate-400 group-hover:text-emerald-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"/></svg></div>
+      <span class="nav-label text-slate-300 text-sm font-medium group-hover:text-emerald-400 transition-colors">Statistik</span>
+    </div>
+    <div class="nav-item active-pill rounded-lg px-3 py-2.5 flex items-center gap-3 cursor-pointer group transition-all duration-150" onclick="nav('laporan',this)">
+      <div class="nav-icon-wrap"><svg class="w-4.5 h-4.5 text-slate-400 group-hover:text-emerald-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg></div>
+      <span class="nav-label text-slate-300 text-sm font-medium group-hover:text-emerald-400 transition-colors">Laporan Tahunan</span>
+    </div>
+
+    <div class="text-[9px] font-bold uppercase tracking-widest text-slate-500 px-3 pt-4 mb-2">Sistem</div>
+    <div class="nav-item active-pill rounded-lg px-3 py-2.5 flex items-center gap-3 cursor-pointer group transition-all duration-150" onclick="nav('tetapan',this)">
+      <div class="nav-icon-wrap"><svg class="w-4.5 h-4.5 text-slate-400 group-hover:text-emerald-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg></div>
+      <span class="nav-label text-slate-300 text-sm font-medium group-hover:text-emerald-400 transition-colors">Tetapan</span>
+    </div>
+  </nav>
+
+  <!-- Sidebar footer -->
+  <div class="px-4 py-3 border-t border-slate-700/50">
+    <div class="flex items-center gap-2.5">
+      <div class="w-7 h-7 rounded-full bg-blue-500/20 flex items-center justify-center">
+        <svg class="w-3.5 h-3.5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg>
+      </div>
+      <div>
+        <div class="text-slate-300 text-xs font-medium" id="sidebar-school">Sekolah</div>
+        <div class="text-slate-500 text-[10px]">v2.0 &bull; 2026</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- ═══════════════════════════════ MAIN ═══════════════════════════════ -->
+<div class="lg:ml-64 min-h-screen flex flex-col">
+
+  <!-- TOP BAR -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-40">
+    <div class="flex items-center justify-between px-4 sm:px-6 h-14">
+      <div class="flex items-center gap-3">
+        <!-- Hamburger -->
+        <button onclick="toggleSidebar()" class="lg:hidden p-1.5 rounded-lg hover:bg-slate-100 transition-colors">
+          <svg class="w-5 h-5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
+        </button>
+        <div>
+          <h1 class="font-serif text-slate-800 text-base font-semibold leading-tight" id="page-title">Dashboard</h1>
+          <div class="text-slate-400 text-[10px] hidden sm:block" id="current-date"></div>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="syncGSheets()" class="flex items-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors border border-emerald-200">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.338-2.32 5.75 5.75 0 011.244 11.096"/></svg>
+          <span class="hidden sm:inline">Sync Sheets</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- CONTENT -->
+  <main class="flex-1 p-4 sm:p-6">
+
+    <!-- ══════════ DASHBOARD ══════════ -->
+    <div class="page active animate-fade-up" id="page-dashboard">
+      <!-- Stat Cards -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="stat-card blue bg-white rounded-2xl p-5 ring-1 ring-slate-200 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
+          <div class="flex items-start justify-between mb-3">
+            <div class="w-9 h-9 bg-blue-50 rounded-xl flex items-center justify-center">
+              <svg class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/></svg>
+            </div>
+            <span class="text-[10px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">Murid</span>
+          </div>
+          <div class="text-2xl sm:text-3xl font-bold text-slate-800 font-serif" id="stat-murid">0</div>
+          <div class="text-xs text-slate-500 mt-1 font-medium">Jumlah Murid</div>
+          <div class="mt-3 h-1 bg-slate-100 rounded-full"><div class="h-1 bg-blue-400 rounded-full w-3/4"></div></div>
+        </div>
+        <div class="stat-card emerald bg-white rounded-2xl p-5 ring-1 ring-slate-200 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
+          <div class="flex items-start justify-between mb-3">
+            <div class="w-9 h-9 bg-emerald-50 rounded-xl flex items-center justify-center">
+              <svg class="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0012 9.75c-2.551 0-5.056.2-7.5.582V21"/></svg>
+            </div>
+            <span class="text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">Unit</span>
+          </div>
+          <div class="text-2xl sm:text-3xl font-bold text-slate-800 font-serif" id="stat-unit">0</div>
+          <div class="text-xs text-slate-500 mt-1 font-medium">Unit Kokurikulum</div>
+          <div class="mt-3 h-1 bg-slate-100 rounded-full"><div class="h-1 bg-emerald-400 rounded-full w-1/2"></div></div>
+        </div>
+        <div class="stat-card amber bg-white rounded-2xl p-5 ring-1 ring-slate-200 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
+          <div class="flex items-start justify-between mb-3">
+            <div class="w-9 h-9 bg-amber-50 rounded-xl flex items-center justify-center">
+              <svg class="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"/></svg>
+            </div>
+            <span class="text-[10px] font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">Aktiviti</span>
+          </div>
+          <div class="text-2xl sm:text-3xl font-bold text-slate-800 font-serif" id="stat-aktiviti">0</div>
+          <div class="text-xs text-slate-500 mt-1 font-medium">Jumlah Aktiviti</div>
+          <div class="mt-3 h-1 bg-slate-100 rounded-full"><div class="h-1 bg-amber-400 rounded-full w-2/3"></div></div>
+        </div>
+        <div class="stat-card violet bg-white rounded-2xl p-5 ring-1 ring-slate-200 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
+          <div class="flex items-start justify-between mb-3">
+            <div class="w-9 h-9 bg-violet-50 rounded-xl flex items-center justify-center">
+              <svg class="w-5 h-5 text-violet-600" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 01-.982-3.172M9.497 14.25a7.454 7.454 0 00.981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 007.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.25 9.71 2 12 2c2.291 0 4.545.25 6.75.721v1.515M19.75 4.236c.982.143 1.953.317 2.916.52a6.003 6.003 0 01-5.395 5.972M19.75 4.236V4.5a9.023 9.023 0 01-2.48 5.228"/></svg>
+            </div>
+            <span class="text-[10px] font-semibold text-violet-600 bg-violet-50 px-2 py-0.5 rounded-full">Pertandingan</span>
+          </div>
+          <div class="text-2xl sm:text-3xl font-bold text-slate-800 font-serif" id="stat-pertandingan">0</div>
+          <div class="text-xs text-slate-500 mt-1 font-medium">Penyertaan Pertandingan</div>
+          <div class="mt-3 h-1 bg-slate-100 rounded-full"><div class="h-1 bg-violet-400 rounded-full w-1/3"></div></div>
+        </div>
+      </div>
+
+      <!-- Charts -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+        <div class="bg-white rounded-2xl p-5 ring-1 ring-slate-200">
+          <div class="flex items-center gap-2 mb-4">
+            <div class="w-1 h-4 bg-blue-500 rounded-full"></div>
+            <h3 class="font-semibold text-slate-700 text-sm">Penyertaan Mengikut Kategori</h3>
+          </div>
+          <div class="chart-wrap"><canvas id="chartKategori"></canvas></div>
+        </div>
+        <div class="bg-white rounded-2xl p-5 ring-1 ring-slate-200">
+          <div class="flex items-center gap-2 mb-4">
+            <div class="w-1 h-4 bg-emerald-500 rounded-full"></div>
+            <h3 class="font-semibold text-slate-700 text-sm">Pencapaian Mengikut Peringkat</h3>
+          </div>
+          <div class="chart-wrap"><canvas id="chartPeringkat"></canvas></div>
+        </div>
+      </div>
+
+      <!-- Ranking -->
+      <div class="bg-white rounded-2xl ring-1 ring-slate-200 overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <svg class="w-4.5 h-4.5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z"/></svg>
+            <h3 class="font-semibold text-slate-700 text-sm">Murid Paling Aktif</h3>
+          </div>
+          <span class="text-xs text-slate-400">Top 5</span>
+        </div>
+        <div class="p-5" id="dash-ranking"></div>
+      </div>
+    </div>
+
+    <!-- ══════════ SENARAI MURID ══════════ -->
+    <div class="page" id="page-murid">
+      <div class="bg-white rounded-2xl ring-1 ring-slate-200 overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3">
+          <h2 class="font-serif text-slate-800 font-semibold">Senarai Murid</h2>
+          <button onclick="openModal('modal-tambah-murid')" class="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3.5 py-2 rounded-lg transition-colors">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg> Tambah Murid
+          </button>
+        </div>
+        <div class="px-5 py-3 border-b border-slate-100">
+          <div class="flex items-center gap-2 bg-slate-50 rounded-xl px-3 py-2.5 ring-1 ring-slate-200">
+            <svg class="w-4 h-4 text-slate-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 15.803 7.5 7.5 0 0016.803 15.803z"/></svg>
+            <input id="search-murid" placeholder="Cari nama, ID, kelas..." oninput="filterMurid()" class="bg-transparent text-sm text-slate-700 placeholder-slate-400 flex-1 outline-none">
+          </div>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead><tr class="border-b border-slate-100">
+              <th class="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">ID</th>
+              <th class="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Nama</th>
+              <th class="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider hidden sm:table-cell">Kelas</th>
+              <th class="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider hidden md:table-cell">Jantina</th>
+              <th class="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider hidden lg:table-cell">Unit</th>
+              <th class="px-5 py-3 text-right text-[11px] font-bold text-slate-400 uppercase tracking-wider">Tindakan</th>
+            </tr></thead>
+            <tbody id="tb-murid" class="divide-y divide-slate-50"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════ IMPORT CSV ══════════ -->
+    <div class="page" id="page-import">
+      <div class="bg-white rounded-2xl ring-1 ring-slate-200 p-5 mb-4">
+        <h2 class="font-serif text-slate-800 font-semibold mb-4">Import CSV Murid</h2>
+        <div id="csv-drop" onclick="document.getElementById('csv-file').click()" ondragover="csvDrag(event,true)" ondragleave="csvDrag(event,false)" ondrop="csvDropped(event)" class="upload-zone border-2 border-dashed border-slate-300 hover:border-blue-400 hover:bg-blue-50/50 rounded-2xl p-10 text-center cursor-pointer transition-all duration-200">
+          <input type="file" id="csv-file" accept=".csv" class="hidden" onchange="csvSelected()">
+          <div class="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-3">
+            <svg class="w-7 h-7 text-blue-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m6.75 12l-3-3m0 0l-3 3m3-3v6m-1.5-15H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
+          </div>
+          <p class="font-semibold text-slate-700 mb-1">Klik atau seret fail CSV di sini</p>
+          <p class="text-xs text-slate-400">Format: id, nama, kelas, jantina, unit</p>
+        </div>
+        <div id="csv-mapping" class="hidden mt-5">
+          <div class="font-semibold text-slate-700 text-sm mb-3">🔗 Peta Kolum CSV</div>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-3" id="csv-map-grid"></div>
+          <div id="csv-preview-wrap" class="mt-4"></div>
+          <div class="mt-4 flex gap-2">
+            <button onclick="importCSV()" class="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Import Murid
+            </button>
+            <button onclick="resetCSV()" class="flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold px-4 py-2 rounded-lg transition-colors">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/></svg> Reset
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="bg-white rounded-2xl ring-1 ring-slate-200 p-5">
+        <h3 class="font-semibold text-slate-700 text-sm mb-3">📋 Contoh Format CSV</h3>
+        <pre class="bg-slate-900 text-emerald-400 p-4 rounded-xl text-xs overflow-x-auto font-mono leading-relaxed">id,nama,kelas,jantina,unit
+M001,Ahmad Faris,Tahun 4 Merah,L,Bola Sepak
+M002,Nurul Ain,Tahun 5 Biru,P,Kelab Bahasa Melayu
+M003,Ravi Kumar,Tahun 6 Hijau,L,Kadet Remaja Sekolah</pre>
+      </div>
+    </div>
+
+    <!-- ══════════ UNIT KOKURIKULUM ══════════ -->
+    <div class="page" id="page-unit">
+      <div class="bg-white rounded-2xl ring-1 ring-slate-200 overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3">
+          <h2 class="font-serif text-slate-800 font-semibold">Unit Kokurikulum</h2>
+          <button onclick="openModal('modal-tambah-unit')" class="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3.5 py-2 rounded-lg transition-colors">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg> Tambah Unit
+          </button>
+        </div>
+        <!-- Filter tabs -->
+        <div class="px-5 py-3 border-b border-slate-100 flex gap-1.5 overflow-x-auto">
+          <button onclick="filterUnit('all',this)" class="unit-tab whitespace-nowrap px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-white transition-all">Semua</button>
+          <button onclick="filterUnit('Kelab & Persatuan',this)" class="unit-tab whitespace-nowrap px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all">🎭 Kelab & Persatuan</button>
+          <button onclick="filterUnit('Sukan & Permainan',this)" class="unit-tab whitespace-nowrap px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all">⚽ Sukan & Permainan</button>
+          <button onclick="filterUnit('Badan Beruniform',this)" class="unit-tab whitespace-nowrap px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all">🎽 Badan Beruniform</button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead><tr class="border-b border-slate-100">
+              <th class="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Nama Unit</th>
+              <th class="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider hidden sm:table-cell">Kategori</th>
+              <th class="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider hidden md:table-cell">Guru Penasihat</th>
+              <th class="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Ahli</th>
+              <th class="px-5 py-3 text-right text-[11px] font-bold text-slate-400 uppercase tracking-wider">Tindakan</th>
+            </tr></thead>
+            <tbody id="tb-unit" class="divide-y divide-slate-50"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════ AKTIVITI ══════════ -->
+    <div class="page" id="page-aktiviti">
+      <div class="bg-white rounded-2xl ring-1 ring-slate-200 overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3">
+          <h2 class="font-serif text-slate-800 font-semibold">Aktiviti Kokurikulum</h2>
+          <button onclick="openModal('modal-tambah-aktiviti')" class="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3.5 py-2 rounded-lg transition-colors">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg> Tambah Aktiviti
+          </button>
+        </div>
+        <div class="px-5 py-3 border-b border-slate-100">
+          <div class="flex items-center gap-2 bg-slate-50 rounded-xl px-3 py-2.5 ring-1 ring-slate-200">
+            <svg class="w-4 h-4 text-slate-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 15.803 7.5 7.5 0 0016.803 15.803z"/></svg>
+            <input id="search-aktiviti" placeholder="Cari aktiviti, unit, lokasi..." oninput="filterAktiviti()" class="bg-transparent text-sm text-slate-700 placeholder-slate-400 flex-1 outline-none">
+          </div>
+        </div>
+        <div class="p-5 space-y-3" id="list-aktiviti"></div>
+      </div>
+    </div>
+
+    <!-- ══════════ KEHADIRAN ══════════ -->
+    <div class="page" id="page-kehadiran">
+      <div class="bg-white rounded-2xl ring-1 ring-slate-200 p-5">
+        <h2 class="font-serif text-slate-800 font-semibold mb-4">Rekod Kehadiran</h2>
+        <div class="mb-5">
+          <label class="block text-xs font-semibold text-slate-600 mb-1.5">Pilih Aktiviti</label>
+          <select id="sel-aktiviti-hadir" onchange="loadKehadiran()" class="w-full sm:w-80 border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-700 bg-slate-50 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all">
+            <option value="">-- Pilih Aktiviti --</option>
+          </select>
+        </div>
+        <div id="kehadiran-wrap"></div>
+      </div>
+    </div>
+
+    <!-- ══════════ PENYERTAAN ══════════ -->
+    <div class="page" id="page-penyertaan">
+      <div class="bg-white rounded-2xl ring-1 ring-slate-200 overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3">
+          <h2 class="font-serif text-slate-800 font-semibold">Rekod Penyertaan Pertandingan</h2>
+          <button onclick="openModal('modal-tambah-penyertaan')" class="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3.5 py-2 rounded-lg transition-colors">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg> Tambah Penyertaan
+          </button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead><tr class="border-b border-slate-100">
+              <th class="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Murid</th>
+              <th class="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider hidden sm:table-cell">Pertandingan</th>
+              <th class="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Peringkat</th>
+              <th class="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider hidden md:table-cell">Tarikh</th>
+              <th class="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider hidden lg:table-cell">Unit</th>
+              <th class="px-5 py-3 text-right text-[11px] font-bold text-slate-400 uppercase tracking-wider">Tindakan</th>
+            </tr></thead>
+            <tbody id="tb-penyertaan" class="divide-y divide-slate-50"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════ PENCAPAIAN ══════════ -->
+    <div class="page" id="page-pencapaian">
+      <div class="bg-white rounded-2xl ring-1 ring-slate-200 overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3">
+          <h2 class="font-serif text-slate-800 font-semibold">Rekod Pencapaian</h2>
+          <button onclick="openModal('modal-tambah-pencapaian')" class="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3.5 py-2 rounded-lg transition-colors">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg> Tambah Pencapaian
+          </button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead><tr class="border-b border-slate-100">
+              <th class="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Murid</th>
+              <th class="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider hidden sm:table-cell">Pertandingan</th>
+              <th class="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Pencapaian</th>
+              <th class="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider hidden md:table-cell">Peringkat</th>
+              <th class="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider hidden lg:table-cell">Tarikh</th>
+              <th class="px-5 py-3 text-right text-[11px] font-bold text-slate-400 uppercase tracking-wider">Tindakan</th>
+            </tr></thead>
+            <tbody id="tb-pencapaian" class="divide-y divide-slate-50"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════ GALERI ══════════ -->
+    <div class="page" id="page-galeri">
+      <div class="bg-white rounded-2xl ring-1 ring-slate-200 p-5">
+        <h2 class="font-serif text-slate-800 font-semibold mb-4">Galeri Gambar Aktiviti</h2>
+
+        <!-- Activity selector -->
+        <div class="mb-5">
+          <label class="block text-xs font-semibold text-slate-600 mb-1.5">Pilih Aktiviti</label>
+          <select id="sel-aktiviti-galeri" onchange="loadGaleri()" class="w-full sm:w-96 border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-700 bg-slate-50 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all">
+            <option value="">-- Pilih Aktiviti --</option>
+          </select>
+        </div>
+
+        <!-- Upload zone (hidden until activity selected) -->
+        <div id="upload-section" class="hidden mb-5">
+          <!-- Image slot counter -->
+          <div id="img-slot-info" class="flex items-center gap-2 mb-3">
+            <div class="flex gap-1" id="img-slots"></div>
+            <span id="img-slot-text" class="text-xs text-slate-400"></span>
+          </div>
+
+          <!-- Drop zone -->
+          <div id="galeri-dropzone"
+               onclick="if(!document.getElementById('img-upload').disabled) document.getElementById('img-upload').click()"
+               ondragover="galeriDrag(event,true)" ondragleave="galeriDrag(event,false)" ondrop="galeriDrop(event)"
+               class="upload-zone border-2 border-dashed border-slate-300 hover:border-emerald-400 hover:bg-emerald-50/50 rounded-2xl p-8 text-center cursor-pointer transition-all duration-200">
+            <input type="file" id="img-upload" accept="image/jpeg,image/png,image/webp,image/gif" multiple class="hidden" onchange="handleImgUpload(this)">
+            <div class="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center mx-auto mb-3">
+              <svg class="w-6 h-6 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/>
+              </svg>
+            </div>
+            <p class="font-semibold text-slate-700 text-sm mb-1">Klik atau seret gambar di sini</p>
+            <p class="text-xs text-slate-400">JPG, PNG, WEBP &bull; Maksimum 4 gambar per aktiviti &bull; 5MB setiap gambar</p>
+          </div>
+
+          <!-- Upload progress -->
+          <div id="upload-progress" class="hidden mt-3 bg-slate-50 rounded-xl p-4">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-semibold text-slate-600">Memuat naik gambar...</span>
+              <span id="upload-progress-text" class="text-xs text-slate-400">0 / 0</span>
+            </div>
+            <div class="h-1.5 bg-slate-200 rounded-full overflow-hidden">
+              <div id="upload-progress-bar" class="h-full bg-emerald-500 rounded-full transition-all duration-300" style="width:0%"></div>
+            </div>
+            <div id="upload-log" class="mt-2 space-y-1"></div>
+          </div>
+        </div>
+
+        <!-- Gallery display -->
+        <div id="galeri-display"></div>
+      </div>
+
+      <!-- GAS Status info card -->
+      <div class="bg-white rounded-2xl ring-1 ring-slate-200 p-5 mt-4" id="gas-status-card" style="display:none">
+        <div class="flex items-start gap-3">
+          <div class="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" id="gas-status-icon"></div>
+          <div>
+            <div class="font-semibold text-sm text-slate-700" id="gas-status-title"></div>
+            <div class="text-xs text-slate-400 mt-0.5" id="gas-status-msg"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════ CARIAN ══════════ -->
+    <div class="page" id="page-carian">
+      <div class="bg-white rounded-2xl ring-1 ring-slate-200 p-5 mb-4">
+        <h2 class="font-serif text-slate-800 font-semibold mb-4">Carian Dokumentasi Aktiviti</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Kata Kunci</label>
+            <input id="cari-keyword" placeholder="Nama aktiviti, tag..." class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-700 bg-slate-50 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Unit</label>
+            <select id="cari-unit" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-700 bg-slate-50 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all outline-none"><option value="">Semua Unit</option></select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Kategori</label>
+            <select id="cari-kategori" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-700 bg-slate-50 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all outline-none">
+              <option value="">Semua Kategori</option>
+              <option>Kelab & Persatuan</option>
+              <option>Sukan & Permainan</option>
+              <option>Badan Beruniform</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Tahun</label>
+            <input id="cari-tahun" type="number" placeholder="2026" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-700 bg-slate-50 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all outline-none">
+          </div>
+        </div>
+        <button onclick="doCarian()" class="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition-colors">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 15.803 7.5 7.5 0 0016.803 15.803z"/></svg> Cari Dokumentasi
+        </button>
+      </div>
+      <div id="hasil-carian"></div>
+    </div>
+
+    <!-- ══════════ STATISTIK ══════════ -->
+    <div class="page" id="page-statistik">
+      <div class="bg-white rounded-2xl ring-1 ring-slate-200 p-5 mb-4">
+        <div class="flex items-center gap-2 mb-4">
+          <div class="w-1 h-5 bg-amber-400 rounded-full"></div>
+          <h2 class="font-serif text-slate-800 font-semibold">Ranking Murid Paling Aktif</h2>
+        </div>
+        <div id="ranking-murid"></div>
+      </div>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+        <div class="bg-white rounded-2xl ring-1 ring-slate-200 p-5">
+          <div class="flex items-center gap-2 mb-4"><div class="w-1 h-4 bg-blue-500 rounded-full"></div><h3 class="font-semibold text-slate-700 text-sm">Penyertaan Mengikut Kategori</h3></div>
+          <div class="chart-wrap"><canvas id="chartStat1"></canvas></div>
+        </div>
+        <div class="bg-white rounded-2xl ring-1 ring-slate-200 p-5">
+          <div class="flex items-center gap-2 mb-4"><div class="w-1 h-4 bg-emerald-500 rounded-full"></div><h3 class="font-semibold text-slate-700 text-sm">Pencapaian Mengikut Peringkat</h3></div>
+          <div class="chart-wrap"><canvas id="chartStat2"></canvas></div>
+        </div>
+      </div>
+      <div class="bg-white rounded-2xl ring-1 ring-slate-200 p-5">
+        <div class="flex items-center gap-2 mb-4"><div class="w-1 h-4 bg-violet-500 rounded-full"></div><h3 class="font-semibold text-slate-700 text-sm">Jumlah Aktiviti Mengikut Unit</h3></div>
+        <div class="chart-wrap"><canvas id="chartStat3" style="max-height:280px"></canvas></div>
+      </div>
+    </div>
+
+    <!-- ══════════ LAPORAN ══════════ -->
+    <div class="page" id="page-laporan">
+      <div class="bg-white rounded-2xl ring-1 ring-slate-200 p-5 mb-4">
+        <h2 class="font-serif text-slate-800 font-semibold mb-4">Jana Laporan Tahunan Kokurikulum</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Nama Sekolah</label>
+            <input id="rpt-sekolah" placeholder="SK Contoh Jaya" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-700 bg-slate-50 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Tahun Laporan</label>
+            <input id="rpt-tahun" type="number" value="2026" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-700 bg-slate-50 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Pengetua / Guru Besar</label>
+            <input id="rpt-pengetua" placeholder="Nama Pengetua" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-700 bg-slate-50 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Guru Kokurikulum</label>
+            <input id="rpt-guru" placeholder="Nama Guru" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-700 bg-slate-50 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all outline-none">
+          </div>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="janaLaporan()" class="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition-colors">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg> Jana Laporan
+          </button>
+          <button id="btn-export-pdf" onclick="eksportPDF()" class="hidden flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition-colors">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg> Eksport PDF
+          </button>
+        </div>
+      </div>
+      <div id="report-container" class="hidden"></div>
+    </div>
+
+    <!-- ══════════ TETAPAN ══════════ -->
+    <div class="page" id="page-tetapan">
+
+      <!-- ── Row 1: Tetapan + Panduan GAS ── -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+
+        <!-- Tetapan Sistem -->
+        <div class="bg-white rounded-2xl ring-1 ring-slate-200 p-5">
+          <div class="flex items-center gap-2 mb-4">
+            <div class="w-8 h-8 bg-blue-50 rounded-xl flex items-center justify-center">
+              <svg class="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            </div>
+            <h2 class="font-serif text-slate-800 font-semibold">Tetapan Sistem</h2>
+          </div>
+          <div class="space-y-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1.5">🔗 Google Apps Script URL</label>
+              <input id="set-gas-url" placeholder="https://script.google.com/macros/s/..." class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-700 bg-slate-50 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1.5">📁 Google Drive Root Folder ID</label>
+              <input id="set-drive-id" placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-700 bg-slate-50 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all outline-none">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1.5">🏫 Nama Sekolah</label>
+                <input id="set-sekolah" placeholder="SK Contoh Jaya" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-700 bg-slate-50 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1.5">📍 Daerah</label>
+                <input id="set-daerah" placeholder="Daerah Kuching" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-700 bg-slate-50 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all outline-none">
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1.5">👤 Nama Pengetua</label>
+                <input id="set-pengetua" placeholder="Nama Pengetua" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-700 bg-slate-50 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1.5">📚 Guru Kokurikulum</label>
+                <input id="set-guru-koku" placeholder="Nama Guru" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-700 bg-slate-50 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all outline-none">
+              </div>
+            </div>
+          </div>
+          <div class="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-slate-100">
+            <button onclick="saveTetapan()" class="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition-colors">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"/></svg>
+              Simpan &amp; Sync ke Sheets
+            </button>
+            <button onclick="clearAllData()" class="flex items-center gap-1.5 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold px-4 py-2.5 rounded-xl transition-colors border border-red-200 ml-auto">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
+              Padam Semua Data
+            </button>
+          </div>
+        </div>
+
+        <!-- Panduan GAS -->
+        <div class="bg-white rounded-2xl ring-1 ring-slate-200 p-5">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-8 h-8 bg-emerald-50 rounded-xl flex items-center justify-center">
+              <svg class="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"/></svg>
+            </div>
+            <h3 class="font-serif text-slate-800 font-semibold">Setup Google Apps Script</h3>
+          </div>
+          <ol class="space-y-1.5 text-xs text-slate-600 mb-3">
+            <li class="flex gap-2"><span class="w-5 h-5 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5">1</span>Buka <strong>Google Sheets</strong> → cipta spreadsheet baru</li>
+            <li class="flex gap-2"><span class="w-5 h-5 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5">2</span>Pergi ke <strong>Extensions → Apps Script</strong></li>
+            <li class="flex gap-2"><span class="w-5 h-5 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5">3</span>Salin kod di bawah, klik <strong>Deploy → New Deployment</strong></li>
+            <li class="flex gap-2"><span class="w-5 h-5 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5">4</span>Pilih jenis: <strong>Web App</strong>, Execute as: <strong>Me</strong>, Access: <strong>Anyone</strong></li>
+            <li class="flex gap-2"><span class="w-5 h-5 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5">5</span>Salin URL Deployment → tampal dalam tetapan di sebelah</li>
+          </ol>
+          <!-- Tab struktur Google Sheets -->
+          <div class="bg-slate-50 rounded-xl p-3 mb-3">
+            <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Tab Google Sheets yang dijana</div>
+            <div class="flex flex-wrap gap-1.5">
+              <span class="text-[10px] font-semibold bg-slate-200 text-slate-700 px-2 py-0.5 rounded">Settings</span>
+              <span class="text-[10px] font-semibold bg-blue-100 text-blue-700 px-2 py-0.5 rounded">Students</span>
+              <span class="text-[10px] font-semibold bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded">Units</span>
+              <span class="text-[10px] font-semibold bg-amber-100 text-amber-700 px-2 py-0.5 rounded">Activities</span>
+              <span class="text-[10px] font-semibold bg-violet-100 text-violet-700 px-2 py-0.5 rounded">Participation</span>
+              <span class="text-[10px] font-semibold bg-red-100 text-red-700 px-2 py-0.5 rounded">Achievements</span>
+              <span class="text-[10px] font-semibold bg-slate-200 text-slate-700 px-2 py-0.5 rounded">Attendance</span>
+              <span class="text-[10px] font-semibold bg-pink-100 text-pink-700 px-2 py-0.5 rounded">Images</span>
+            </div>
+          </div>
+          <pre id="gas-code-block" class="bg-slate-900 text-emerald-400 p-3 rounded-xl text-[9.5px] overflow-x-auto font-mono leading-relaxed max-h-48 overflow-y-auto">Klik butang di bawah untuk papar kod penuh GAS...</pre>
+          <button onclick="showGasCode()" class="mt-2 text-xs font-semibold text-blue-600 hover:underline">📋 Papar / Salin Kod GAS</button>
+        </div>
+      </div>
+
+      <!-- ── Row 2: Admin Import dari Google Sheets ── -->
+      <div class="bg-white rounded-2xl ring-1 ring-slate-200 p-5">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 bg-amber-50 rounded-xl flex items-center justify-center">
+              <svg class="w-4 h-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+            </div>
+            <div>
+              <h2 class="font-serif text-slate-800 font-semibold">Import Admin dari Google Sheets</h2>
+              <p class="text-xs text-slate-400 mt-0.5">Untuk admin sahaja — ubah data terus dalam Google Sheets, kemudian import ke sistem</p>
+            </div>
+          </div>
+          <span class="text-[10px] font-bold bg-amber-100 text-amber-700 px-2.5 py-1 rounded-full">ADMIN</span>
+        </div>
+
+        <!-- Tab selector -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4" id="import-tab-grid">
+          <label class="flex items-center gap-2 p-3 rounded-xl ring-1 ring-slate-200 cursor-pointer hover:ring-blue-300 hover:bg-blue-50/50 transition-all has-[:checked]:ring-blue-500 has-[:checked]:bg-blue-50">
+            <input type="checkbox" class="import-tab-chk rounded" value="Settings" checked>
+            <span class="text-xs font-semibold text-slate-700">⚙️ Settings</span>
+          </label>
+          <label class="flex items-center gap-2 p-3 rounded-xl ring-1 ring-slate-200 cursor-pointer hover:ring-blue-300 hover:bg-blue-50/50 transition-all has-[:checked]:ring-blue-500 has-[:checked]:bg-blue-50">
+            <input type="checkbox" class="import-tab-chk rounded" value="Students" checked>
+            <span class="text-xs font-semibold text-slate-700">👥 Students</span>
+          </label>
+          <label class="flex items-center gap-2 p-3 rounded-xl ring-1 ring-slate-200 cursor-pointer hover:ring-blue-300 hover:bg-blue-50/50 transition-all has-[:checked]:ring-blue-500 has-[:checked]:bg-blue-50">
+            <input type="checkbox" class="import-tab-chk rounded" value="Units" checked>
+            <span class="text-xs font-semibold text-slate-700">🏫 Units</span>
+          </label>
+          <label class="flex items-center gap-2 p-3 rounded-xl ring-1 ring-slate-200 cursor-pointer hover:ring-blue-300 hover:bg-blue-50/50 transition-all has-[:checked]:ring-blue-500 has-[:checked]:bg-blue-50">
+            <input type="checkbox" class="import-tab-chk rounded" value="Activities" checked>
+            <span class="text-xs font-semibold text-slate-700">📅 Activities</span>
+          </label>
+          <label class="flex items-center gap-2 p-3 rounded-xl ring-1 ring-slate-200 cursor-pointer hover:ring-blue-300 hover:bg-blue-50/50 transition-all has-[:checked]:ring-blue-500 has-[:checked]:bg-blue-50">
+            <input type="checkbox" class="import-tab-chk rounded" value="Participation" checked>
+            <span class="text-xs font-semibold text-slate-700">🎯 Participation</span>
+          </label>
+          <label class="flex items-center gap-2 p-3 rounded-xl ring-1 ring-slate-200 cursor-pointer hover:ring-blue-300 hover:bg-blue-50/50 transition-all has-[:checked]:ring-blue-500 has-[:checked]:bg-blue-50">
+            <input type="checkbox" class="import-tab-chk rounded" value="Achievements" checked>
+            <span class="text-xs font-semibold text-slate-700">🥇 Achievements</span>
+          </label>
+          <label class="flex items-center gap-2 p-3 rounded-xl ring-1 ring-slate-200 cursor-pointer hover:ring-blue-300 hover:bg-blue-50/50 transition-all has-[:checked]:ring-blue-500 has-[:checked]:bg-blue-50">
+            <input type="checkbox" class="import-tab-chk rounded" value="Attendance">
+            <span class="text-xs font-semibold text-slate-700">✅ Attendance</span>
+          </label>
+          <label class="flex items-center gap-2 p-3 rounded-xl ring-1 ring-slate-200 cursor-pointer hover:ring-blue-300 hover:bg-blue-50/50 transition-all has-[:checked]:ring-blue-500 has-[:checked]:bg-blue-50">
+            <input type="checkbox" class="import-tab-chk rounded" value="Images">
+            <span class="text-xs font-semibold text-slate-700">🖼️ Images</span>
+          </label>
+        </div>
+
+        <!-- Mode pilihan -->
+        <div class="flex flex-wrap items-center gap-3 mb-4">
+          <div class="flex items-center gap-1.5">
+            <span class="text-xs font-semibold text-slate-600">Mod Import:</span>
+          </div>
+          <label class="flex items-center gap-1.5 cursor-pointer">
+            <input type="radio" name="import-mode" value="replace" checked class="accent-blue-600">
+            <span class="text-xs text-slate-700 font-medium">Ganti Semua</span>
+            <span class="text-[10px] text-slate-400">(padam data sedia ada, ganti dengan data Sheets)</span>
+          </label>
+          <label class="flex items-center gap-1.5 cursor-pointer">
+            <input type="radio" name="import-mode" value="merge" class="accent-blue-600">
+            <span class="text-xs text-slate-700 font-medium">Gabung</span>
+            <span class="text-[10px] text-slate-400">(tambah data baharu, kekalkan yang tidak bertindih)</span>
+          </label>
+        </div>
+
+        <!-- Import log -->
+        <div id="import-log" class="hidden bg-slate-50 rounded-xl p-4 mb-4 max-h-52 overflow-y-auto">
+          <div class="text-xs font-bold text-slate-600 mb-2">Log Import:</div>
+          <div id="import-log-content" class="space-y-1 text-xs font-mono"></div>
+        </div>
+
+        <div class="flex flex-wrap gap-2 items-center">
+          <button onclick="importFromSheets()" class="flex items-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold px-5 py-2.5 rounded-xl transition-colors">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+            Import dari Google Sheets
+          </button>
+          <button onclick="previewSheetsData()" class="flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold px-4 py-2.5 rounded-xl transition-colors">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            Pratonton Data Sheets
+          </button>
+          <div id="import-status" class="text-xs text-slate-400 ml-auto"></div>
+        </div>
+
+        <!-- Preview table -->
+        <div id="import-preview" class="hidden mt-4"></div>
+      </div>
+
+    </div>
+
+  </main>
+</div>
+
+<!-- ═══════════════ MODALS ═══════════════ -->
+
+<!-- Modal Tambah Murid -->
+<div class="modal-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[300] items-center justify-center p-4" id="modal-tambah-murid">
+  <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl animate-fade-up">
+    <div class="flex items-center justify-between mb-5">
+      <h3 class="font-serif text-slate-800 font-semibold text-lg">Tambah / Edit Murid</h3>
+      <button onclick="closeModal('modal-tambah-murid')" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-400 transition-colors">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <input type="hidden" id="murid-edit-id">
+    <div class="grid grid-cols-2 gap-3 mb-5">
+      <div><label class="block text-xs font-semibold text-slate-600 mb-1.5">ID Murid</label><input id="murid-id" placeholder="M001" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all"></div>
+      <div><label class="block text-xs font-semibold text-slate-600 mb-1.5">Nama Penuh</label><input id="murid-nama" placeholder="Ahmad Faris" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all"></div>
+      <div><label class="block text-xs font-semibold text-slate-600 mb-1.5">Tahun / Kelas</label><input id="murid-kelas" placeholder="Tahun 4 Merah" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all"></div>
+      <div><label class="block text-xs font-semibold text-slate-600 mb-1.5">Jantina</label><select id="murid-jantina" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all bg-white"><option value="L">Lelaki</option><option value="P">Perempuan</option></select></div>
+      <div class="col-span-2">
+        <div class="bg-slate-50 rounded-xl p-3 space-y-2.5">
+          <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Unit Kokurikulum <span class="text-slate-400 font-normal normal-case">(boleh ikuti 1–3 kategori)</span></div>
+          <div>
+            <label class="block text-xs font-semibold text-amber-700 mb-1">🪖 Badan Beruniform</label>
+            <select id="murid-unit-bb" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100 transition-all bg-white"><option value="">— Tiada / Belum ditetapkan —</option></select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-blue-700 mb-1">📚 Kelab &amp; Persatuan</label>
+            <select id="murid-unit-kp" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all bg-white"><option value="">— Tiada / Belum ditetapkan —</option></select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-emerald-700 mb-1">⚽ Sukan &amp; Permainan</label>
+            <select id="murid-unit-sp" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 transition-all bg-white"><option value="">— Tiada / Belum ditetapkan —</option></select>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="flex gap-2 justify-end">
+      <button onclick="closeModal('modal-tambah-murid')" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors">Batal</button>
+      <button onclick="saveMurid()" class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-colors">
+        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"/></svg> Simpan
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Tambah Unit -->
+<div class="modal-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[300] items-center justify-center p-4" id="modal-tambah-unit">
+  <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl animate-fade-up">
+    <div class="flex items-center justify-between mb-5">
+      <h3 class="font-serif text-slate-800 font-semibold text-lg">Tambah / Edit Unit</h3>
+      <button onclick="closeModal('modal-tambah-unit')" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-400 transition-colors"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
+    </div>
+    <input type="hidden" id="unit-edit-id">
+    <div class="space-y-3 mb-5">
+      <div><label class="block text-xs font-semibold text-slate-600 mb-1.5">Nama Unit</label><input id="unit-nama" placeholder="Kelab Bahasa Melayu" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all"></div>
+      <div><label class="block text-xs font-semibold text-slate-600 mb-1.5">Kategori</label><select id="unit-kategori" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all bg-white"><option>Kelab & Persatuan</option><option>Sukan & Permainan</option><option>Badan Beruniform</option></select></div>
+      <div>
+        <label class="block text-xs font-semibold text-slate-600 mb-1.5">Guru Penasihat 1 <span class="text-red-400">*</span></label>
+        <input id="unit-guru" placeholder="Nama Guru Pertama" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all">
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-slate-600 mb-1.5">Guru Penasihat 2 <span class="text-slate-400 font-normal">(pilihan)</span></label>
+        <input id="unit-guru2" placeholder="Nama Guru Kedua (jika ada)" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all">
+      </div>
+    </div>
+    <div class="flex gap-2 justify-end">
+      <button onclick="closeModal('modal-tambah-unit')" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors">Batal</button>
+      <button onclick="saveUnit()" class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-colors"><svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"/></svg> Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Tambah Aktiviti -->
+<div class="modal-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[300] items-center justify-center p-4" id="modal-tambah-aktiviti">
+  <div class="bg-white rounded-2xl p-6 w-full max-w-lg shadow-2xl animate-fade-up max-h-[90vh] overflow-y-auto">
+    <div class="flex items-center justify-between mb-5">
+      <h3 class="font-serif text-slate-800 font-semibold text-lg">Tambah / Edit Aktiviti</h3>
+      <button onclick="closeModal('modal-tambah-aktiviti')" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-400 transition-colors"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
+    </div>
+    <input type="hidden" id="aktiviti-edit-id">
+    <div class="grid grid-cols-2 gap-3 mb-5">
+      <div><label class="block text-xs font-semibold text-slate-600 mb-1.5">Tarikh</label><input type="date" id="aktiviti-tarikh" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all"></div>
+      <div><label class="block text-xs font-semibold text-slate-600 mb-1.5">Unit Kokurikulum</label><select id="aktiviti-unit" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all bg-white"><option value="">-- Pilih Unit --</option></select></div>
+      <div class="col-span-2"><label class="block text-xs font-semibold text-slate-600 mb-1.5">Nama Aktiviti</label><input id="aktiviti-nama" placeholder="Pertandingan Pidato" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all"></div>
+      <div class="col-span-2"><label class="block text-xs font-semibold text-slate-600 mb-1.5">Lokasi</label><input id="aktiviti-lokasi" placeholder="Dewan Sekolah" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all"></div>
+      <div class="col-span-2"><label class="block text-xs font-semibold text-slate-600 mb-1.5">Deskripsi</label><textarea id="aktiviti-deskripsi" placeholder="Huraian aktiviti..." rows="3" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all resize-none"></textarea></div>
+      <div class="col-span-2"><label class="block text-xs font-semibold text-slate-600 mb-1.5">Tag Kata Kunci (pisah dengan koma)</label><input id="aktiviti-tag" placeholder="pidato, bahasa, pertandingan" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all"></div>
+    </div>
+    <div class="flex gap-2 justify-end">
+      <button onclick="closeModal('modal-tambah-aktiviti')" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors">Batal</button>
+      <button onclick="saveAktiviti()" class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-colors"><svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"/></svg> Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Penyertaan -->
+<div class="modal-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[300] items-center justify-center p-4" id="modal-tambah-penyertaan">
+  <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl animate-fade-up max-h-[90vh] overflow-y-auto">
+    <div class="flex items-center justify-between mb-5">
+      <h3 class="font-serif text-slate-800 font-semibold text-lg">Tambah Penyertaan</h3>
+      <button onclick="closeModal('modal-tambah-penyertaan')" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-400 transition-colors"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
+    </div>
+    <input type="hidden" id="penyertaan-edit-id">
+    <div class="space-y-3 mb-5">
+      <div><label class="block text-xs font-semibold text-slate-600 mb-1.5">Murid</label><select id="penyertaan-murid" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all bg-white"><option value="">-- Pilih Murid --</option></select></div>
+      <div><label class="block text-xs font-semibold text-slate-600 mb-1.5">Nama Pertandingan</label><input id="penyertaan-nama" placeholder="Kejohanan Bola Sepak MSSD" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all"></div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="block text-xs font-semibold text-slate-600 mb-1.5">Peringkat</label><select id="penyertaan-peringkat" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all bg-white"><option>Sekolah</option><option>Daerah</option><option>Bahagian</option><option>Negeri</option><option>Kebangsaan</option></select></div>
+        <div><label class="block text-xs font-semibold text-slate-600 mb-1.5">Tarikh</label><input type="date" id="penyertaan-tarikh" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all"></div>
+      </div>
+      <div><label class="block text-xs font-semibold text-slate-600 mb-1.5">Unit</label><select id="penyertaan-unit" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all bg-white"><option value="">-- Pilih Unit --</option></select></div>
+    </div>
+    <div class="flex gap-2 justify-end">
+      <button onclick="closeModal('modal-tambah-penyertaan')" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors">Batal</button>
+      <button onclick="savePenyertaan()" class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-colors"><svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"/></svg> Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Pencapaian -->
+<div class="modal-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[300] items-center justify-center p-4" id="modal-tambah-pencapaian">
+  <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl animate-fade-up max-h-[90vh] overflow-y-auto">
+    <div class="flex items-center justify-between mb-5">
+      <h3 class="font-serif text-slate-800 font-semibold text-lg">Tambah Pencapaian</h3>
+      <button onclick="closeModal('modal-tambah-pencapaian')" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-400 transition-colors"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
+    </div>
+    <input type="hidden" id="pencapaian-edit-id">
+    <div class="space-y-3 mb-5">
+      <div><label class="block text-xs font-semibold text-slate-600 mb-1.5">Murid</label><select id="pencapaian-murid" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all bg-white"><option value="">-- Pilih Murid --</option></select></div>
+      <div><label class="block text-xs font-semibold text-slate-600 mb-1.5">Nama Pertandingan</label><input id="pencapaian-nama" placeholder="Pertandingan Pidato BM" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all"></div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="block text-xs font-semibold text-slate-600 mb-1.5">Pencapaian</label><select id="pencapaian-tahap" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all bg-white"><option value="Penyertaan">🎗️ Penyertaan</option><option value="Tempat Ketiga">🥉 Tempat Ketiga</option><option value="Tempat Kedua">🥈 Tempat Kedua</option><option value="Johan">🥇 Johan</option></select></div>
+        <div><label class="block text-xs font-semibold text-slate-600 mb-1.5">Peringkat</label><select id="pencapaian-peringkat" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all bg-white"><option>Sekolah</option><option>Daerah</option><option>Bahagian</option><option>Negeri</option><option>Kebangsaan</option></select></div>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="block text-xs font-semibold text-slate-600 mb-1.5">Tarikh</label><input type="date" id="pencapaian-tarikh" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all"></div>
+        <div><label class="block text-xs font-semibold text-slate-600 mb-1.5">Unit</label><select id="pencapaian-unit" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all bg-white"><option value="">-- Pilih Unit --</option></select></div>
+      </div>
+    </div>
+    <div class="flex gap-2 justify-end">
+      <button onclick="closeModal('modal-tambah-pencapaian')" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors">Batal</button>
+      <button onclick="savePencapaian()" class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-colors"><svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"/></svg> Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Image Viewer -->
+<div class="img-viewer fixed inset-0 bg-black/95 z-[500] items-center justify-center" id="img-viewer" onclick="closeViewer()">
+  <button onclick="closeViewer()" class="absolute top-4 right-4 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center text-white transition-colors">
+    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+  </button>
+  <img id="viewer-img" src="" alt="" class="max-w-[90vw] max-h-[90vh] rounded-xl object-contain">
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast fixed bottom-6 right-6 z-[999] flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl text-sm font-medium text-white min-w-[200px]">
+  <div id="toast-icon"></div>
+  <span id="toast-msg"></span>
+</div>
+
+<!-- ═══════════════ JS ═══════════════ -->
+<script>
+// DATA STORE
+const DB = {
+  get(k){try{return JSON.parse(localStorage.getItem('koku_'+k)||'[]');}catch{return[];}},
+  set(k,v){localStorage.setItem('koku_'+k,JSON.stringify(v));},
+  getSingle(k,def={}){try{return JSON.parse(localStorage.getItem('koku_'+k)||JSON.stringify(def));}catch{return def;}},
+  setSingle(k,v){localStorage.setItem('koku_'+k,JSON.stringify(v));}
+};
+let students=[],units=[],activities=[],attendance=[],participations=[],achievements=[],images=[],settings={};
+let csvData=[],csvHeaders=[];
+let chartK=null,chartP=null,chartS1=null,chartS2=null,chartS3=null;
+let currentUnitFilter='all';
+
+function loadData(){
+  students=DB.get('students');units=DB.get('units');activities=DB.get('activities');
+  attendance=DB.get('attendance');participations=DB.get('participations');
+  achievements=DB.get('achievements');images=DB.get('images');
+  settings=DB.getSingle('settings',{gasUrl:'',driveId:'',sekolah:'',daerah:'',pengetua:'',guruKoku:''});
+}
+function saveData(){
+  DB.set('students',students);DB.set('units',units);DB.set('activities',activities);
+  DB.set('attendance',attendance);DB.set('participations',participations);
+  DB.set('achievements',achievements);DB.set('images',images);
+}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
+
+// NAVIGATION
+const pageTitles={dashboard:'Dashboard',murid:'Senarai Murid',import:'Import CSV Murid',unit:'Unit Kokurikulum',aktiviti:'Aktiviti Kokurikulum',kehadiran:'Rekod Kehadiran',penyertaan:'Rekod Penyertaan',pencapaian:'Rekod Pencapaian',galeri:'Galeri Gambar',carian:'Carian Dokumentasi',statistik:'Statistik Kokurikulum',laporan:'Laporan Tahunan',tetapan:'Tetapan Sistem'};
+
+function nav(page,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  const pg=document.getElementById('page-'+page);
+  if(pg){pg.classList.add('active');pg.classList.add('animate-fade-up');setTimeout(()=>pg.classList.remove('animate-fade-up'),300);}
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  if(el) el.classList.add('active');
+  document.getElementById('page-title').textContent=pageTitles[page]||page;
+  closeSidebar();
+  renderPage(page);
+}
+
+function renderPage(p){
+  if(p==='dashboard') renderDashboard();
+  else if(p==='murid') renderMurid();
+  else if(p==='unit') renderUnit();
+  else if(p==='aktiviti') renderAktiviti();
+  else if(p==='kehadiran') populateSelects();
+  else if(p==='penyertaan') renderPenyertaan();
+  else if(p==='pencapaian') renderPencapaian();
+  else if(p==='galeri'){populateSelects();renderGaleri();}
+  else if(p==='statistik') renderStatistik();
+  else if(p==='tetapan') loadTetapan();
+  else if(p==='carian'){populateSelects();}
+  else if(p==='laporan'){
+    // Prefill from settings
+    const s=document.getElementById('rpt-sekolah');
+    const pe=document.getElementById('rpt-pengetua');
+    const g=document.getElementById('rpt-guru');
+    if(s&&!s.value) s.value=settings.sekolah||'';
+    if(pe&&!pe.value) pe.value=settings.pengetua||'';
+    if(g&&!g.value) g.value=settings.guruKoku||'';
+  }
+}
+
+// SIDEBAR MOBILE
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebar-overlay').classList.toggle('hidden');}
+function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sidebar-overlay').classList.add('hidden');}
+
+// DASHBOARD
+function renderDashboard(){
+  document.getElementById('stat-murid').textContent=students.length;
+  document.getElementById('stat-unit').textContent=units.length;
+  document.getElementById('stat-aktiviti').textContent=activities.length;
+  document.getElementById('stat-pertandingan').textContent=participations.length;
+  renderChartKategori();renderChartPeringkat();renderDashRanking();
+}
+
+function renderChartKategori(){
+  const cats=['Kelab & Persatuan','Sukan & Permainan','Badan Beruniform'];
+  const counts=cats.map(c=>{const ids=units.filter(u=>u.kategori===c).map(u=>u.id);return participations.filter(p=>ids.includes(p.unitId)).length;});
+  if(chartK)chartK.destroy();
+  chartK=new Chart(document.getElementById('chartKategori'),{type:'doughnut',data:{labels:cats,datasets:[{data:counts,backgroundColor:['#3b82f6','#10b981','#8b5cf6'],borderWidth:0,hoverOffset:4}]},options:{plugins:{legend:{position:'bottom',labels:{font:{size:11,family:'DM Sans'},padding:14}}},cutout:'68%'}});
+}
+
+function renderChartPeringkat(){
+  const prs=['Sekolah','Daerah','Bahagian','Negeri','Kebangsaan'];
+  const counts=prs.map(p=>achievements.filter(a=>a.peringkat===p).length);
+  if(chartP)chartP.destroy();
+  chartP=new Chart(document.getElementById('chartPeringkat'),{type:'bar',data:{labels:prs,datasets:[{data:counts,backgroundColor:['#dbeafe','#d1fae5','#fef3c7','#ede9fe','#fee2e2'],borderRadius:8,borderWidth:0}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1,font:{size:10}},grid:{color:'#f1f5f9'}},x:{grid:{display:false},ticks:{font:{size:10}}}}}});
+}
+
+function getMuridScore(sid){
+  const a=achievements.filter(x=>x.studentId===sid);
+  return{penyertaan:a.filter(x=>x.tahap==='Penyertaan').length,ketiga:a.filter(x=>x.tahap==='Tempat Ketiga').length,kedua:a.filter(x=>x.tahap==='Tempat Kedua').length,johan:a.filter(x=>x.tahap==='Johan').length,total:a.length+participations.filter(p=>p.studentId===sid).length};
+}
+
+function renderDashRanking(){
+  const ranked=[...students].map(s=>({...s,...getMuridScore(s.id)})).sort((a,b)=>b.total-a.total).slice(0,5);
+  const el=document.getElementById('dash-ranking');
+  if(!ranked.length){el.innerHTML=emptyState('🏆','Tiada data murid lagi');return;}
+  el.innerHTML=ranked.map((s,i)=>`
+    <div class="flex items-center gap-3 py-3 ${i<ranked.length-1?'border-b border-slate-50':''}">
+      <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${i===0?'bg-amber-100 text-amber-700':i===1?'bg-slate-200 text-slate-600':i===2?'bg-orange-100 text-orange-700':'bg-slate-100 text-slate-500'}">${i+1}</div>
+      <div class="flex-1 min-w-0">
+        <div class="font-semibold text-slate-800 text-sm truncate">${s.nama}</div>
+        <div class="text-xs text-slate-400">${s.kelas}</div>
+      </div>
+      <div class="flex items-center gap-1.5 flex-shrink-0">
+        ${s.johan?`<span class="inline-flex items-center gap-1 text-[10px] font-semibold bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full">🥇 ${s.johan}</span>`:''}
+        ${s.kedua?`<span class="inline-flex items-center gap-1 text-[10px] font-semibold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">🥈 ${s.kedua}</span>`:''}
+        ${s.ketiga?`<span class="inline-flex items-center gap-1 text-[10px] font-semibold bg-orange-50 text-orange-700 px-2 py-0.5 rounded-full">🥉 ${s.ketiga}</span>`:''}
+        <span class="inline-flex items-center gap-1 text-[10px] font-semibold bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">🎯 ${s.total}</span>
+      </div>
+    </div>`).join('');
+}
+
+// MURID
+function renderMurid(q=''){
+  const query=q||(document.getElementById('search-murid')?document.getElementById('search-murid').value:'');
+  const list=students.filter(s=>!query||s.nama.toLowerCase().includes(query.toLowerCase())||s.id.toLowerCase().includes(query.toLowerCase())||s.kelas.toLowerCase().includes(query.toLowerCase()));
+  const tb=document.getElementById('tb-murid');
+  if(!list.length){tb.innerHTML=`<tr><td colspan="6"><div class="py-8">${emptyState('👥','Tiada murid dijumpai')}</div></td></tr>`;return;}
+  tb.innerHTML=list.map(s=>{
+    const uBB=s.unitBB?units.find(u=>u.id===s.unitBB):null;
+    const uKP=s.unitKP?units.find(u=>u.id===s.unitKP):null;
+    const uSP=s.unitSP?units.find(u=>u.id===s.unitSP):null;
+    const unitBadges=[
+      uBB?`<span class="inline-block text-[9px] font-semibold bg-amber-50 text-amber-700 border border-amber-200 px-1.5 py-0.5 rounded-md">🪖 ${uBB.nama}</span>`:'',
+      uKP?`<span class="inline-block text-[9px] font-semibold bg-blue-50 text-blue-700 border border-blue-200 px-1.5 py-0.5 rounded-md">📚 ${uKP.nama}</span>`:'',
+      uSP?`<span class="inline-block text-[9px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 px-1.5 py-0.5 rounded-md">⚽ ${uSP.nama}</span>`:'',
+    ].filter(Boolean).join(' ');
+    return`<tr class="table-row transition-colors">
+      <td class="px-5 py-3.5"><span class="inline-block text-[10px] font-bold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-lg">${s.id}</span></td>
+      <td class="px-5 py-3.5"><span class="font-semibold text-slate-800 text-sm">${s.nama}</span></td>
+      <td class="px-5 py-3.5 hidden sm:table-cell text-sm text-slate-600">${s.kelas}</td>
+      <td class="px-5 py-3.5 hidden md:table-cell">${s.jantina==='L'?badge('Lelaki','blue'):badge('Perempuan','violet')}</td>
+      <td class="px-5 py-3.5 hidden lg:table-cell"><div class="flex flex-wrap gap-1">${unitBadges||'<span class="text-xs text-slate-400">—</span>'}</div></td>
+      <td class="px-5 py-3.5 text-right">
+        <button onclick="editMurid('${s.id}')" class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors mr-1"><svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"/></svg></button>
+        <button onclick="deleteMurid('${s.id}')" class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"><svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg></button>
+      </td>
+    </tr>`;}).join('');
+}
+function filterMurid(){renderMurid();}
+function editMurid(id){
+  const s=students.find(x=>x.id===id);if(!s)return;
+  document.getElementById('murid-edit-id').value=s.id;
+  document.getElementById('murid-id').value=s.id;
+  document.getElementById('murid-nama').value=s.nama;
+  document.getElementById('murid-kelas').value=s.kelas;
+  document.getElementById('murid-jantina').value=s.jantina;
+  populateUnitSelectByKat('murid-unit-bb','Badan Beruniform', s.unitBB||s.unitId||'');
+  populateUnitSelectByKat('murid-unit-kp','Kelab & Persatuan', s.unitKP||'');
+  populateUnitSelectByKat('murid-unit-sp','Sukan & Permainan', s.unitSP||'');
+  openModal('modal-tambah-murid');
+}
+function saveMurid(){
+  const eid=document.getElementById('murid-edit-id').value;
+  const id=document.getElementById('murid-id').value.trim();
+  const nama=document.getElementById('murid-nama').value.trim();
+  const kelas=document.getElementById('murid-kelas').value.trim();
+  const jantina=document.getElementById('murid-jantina').value;
+  const unitBB=document.getElementById('murid-unit-bb').value;
+  const unitKP=document.getElementById('murid-unit-kp').value;
+  const unitSP=document.getElementById('murid-unit-sp').value;
+  if(!id||!nama){toast('Sila isi ID dan nama murid','error');return;}
+  if(!eid&&students.find(s=>s.id===id)){toast('ID murid sudah wujud!','error');return;}
+  // unitId kept for backward compat (first non-empty unit)
+  const unitId=unitBB||unitKP||unitSP||'';
+  if(eid){const i=students.findIndex(s=>s.id===eid);students[i]={id,nama,kelas,jantina,unitId,unitBB,unitKP,unitSP};}
+  else students.push({id,nama,kelas,jantina,unitId,unitBB,unitKP,unitSP});
+  saveData();closeModal('modal-tambah-murid');renderMurid();toast(eid?'Murid dikemaskini':'Murid berjaya ditambah','success');
+}
+function deleteMurid(id){if(!confirm('Padam murid ini?'))return;students=students.filter(s=>s.id!==id);saveData();renderMurid();toast('Murid dipadam','success');}
+
+// UNIT
+function renderUnit(){
+  const list=units.filter(u=>currentUnitFilter==='all'||u.kategori===currentUnitFilter);
+  const tb=document.getElementById('tb-unit');
+  if(!list.length){tb.innerHTML=`<tr><td colspan="5"><div class="py-8">${emptyState('🏫','Tiada unit kokurikulum lagi')}</div></td></tr>`;return;}
+  tb.innerHTML=list.map(u=>{
+    const cnt=students.filter(s=>getStudentUnitIds(s).includes(u.id)).length;
+    const catMap={'Kelab & Persatuan':'blue','Sukan & Permainan':'emerald','Badan Beruniform':'amber'};
+    return`<tr class="table-row transition-colors">
+      <td class="px-5 py-3.5"><span class="font-semibold text-slate-800 text-sm">${u.nama}</span></td>
+      <td class="px-5 py-3.5 hidden sm:table-cell">${badge(u.kategori,catMap[u.kategori]||'slate')}</td>
+      <td class="px-5 py-3.5 hidden md:table-cell text-sm text-slate-600">${u.guru2?`<div class="text-xs leading-relaxed"><div>${u.guru||'—'}</div><div class="text-slate-400">${u.guru2}</div></div>`:(u.guru||'—')}</td>
+      <td class="px-5 py-3.5">${badge(cnt+' murid','blue')}</td>
+      <td class="px-5 py-3.5 text-right">
+        <button onclick="editUnit('${u.id}')" class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors mr-1"><svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"/></svg></button>
+        <button onclick="deleteUnit('${u.id}')" class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"><svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg></button>
+      </td>
+    </tr>`;}).join('');
+}
+function filterUnit(cat,el){currentUnitFilter=cat;document.querySelectorAll('.unit-tab').forEach(t=>{t.className='unit-tab whitespace-nowrap px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all';});el.className='unit-tab whitespace-nowrap px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-white transition-all';renderUnit();}
+function editUnit(id){const u=units.find(x=>x.id===id);if(!u)return;document.getElementById('unit-edit-id').value=u.id;document.getElementById('unit-nama').value=u.nama;document.getElementById('unit-kategori').value=u.kategori;document.getElementById('unit-guru').value=u.guru||'';document.getElementById('unit-guru2').value=u.guru2||'';openModal('modal-tambah-unit');}
+function saveUnit(){
+  const eid=document.getElementById('unit-edit-id').value;
+  const nama=document.getElementById('unit-nama').value.trim();
+  const kategori=document.getElementById('unit-kategori').value;
+  const guru=document.getElementById('unit-guru').value.trim();
+  const guru2=document.getElementById('unit-guru2').value.trim();
+  if(!nama){toast('Sila isi nama unit','error');return;}
+  if(!guru){toast('Sila isi nama Guru Penasihat 1','error');return;}
+  if(eid){const i=units.findIndex(u=>u.id===eid);units[i]={...units[i],nama,kategori,guru,guru2};}
+  else units.push({id:uid(),nama,kategori,guru,guru2});
+  saveData();closeModal('modal-tambah-unit');renderUnit();toast(eid?'Unit dikemaskini':'Unit berjaya ditambah','success');
+}
+function deleteUnit(id){if(!confirm('Padam unit ini?'))return;units=units.filter(u=>u.id!==id);saveData();renderUnit();toast('Unit dipadam','success');}
+
+// AKTIVITI
+function renderAktiviti(q=''){
+  const query=q||(document.getElementById('search-aktiviti')?document.getElementById('search-aktiviti').value:'');
+  const list=activities.filter(a=>!query||a.nama.toLowerCase().includes(query.toLowerCase())||(a.lokasi||'').toLowerCase().includes(query.toLowerCase())||(a.tags||'').toLowerCase().includes(query.toLowerCase())||units.find(u=>u.id===a.unitId)?.nama?.toLowerCase().includes(query.toLowerCase()));
+  const el=document.getElementById('list-aktiviti');
+  if(!list.length){el.innerHTML=emptyState('📅','Tiada aktiviti lagi');return;}
+  const catColor={'Kelab & Persatuan':'blue','Sukan & Permainan':'emerald','Badan Beruniform':'amber'};
+  el.innerHTML=[...list].sort((a,b)=>new Date(b.tarikh)-new Date(a.tarikh)).map(a=>{
+    const u=units.find(u=>u.id===a.unitId);
+    const imgs=(images.find(i=>i.activityId===a.id)||{}).images||[];
+    return`<div class="flex flex-col sm:flex-row items-start gap-4 p-4 rounded-xl ring-1 ring-slate-100 hover:ring-slate-200 hover:bg-slate-50/50 transition-all">
+      <div class="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center flex-shrink-0">
+        <svg class="w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"/></svg>
+      </div>
+      <div class="flex-1 min-w-0">
+        <div class="flex flex-wrap items-start justify-between gap-2">
+          <div>
+            <div class="font-semibold text-slate-800 text-sm">${a.nama}</div>
+            <div class="flex flex-wrap items-center gap-2 mt-1">
+              <span class="text-xs text-slate-400">${a.tarikh}</span>
+              ${a.lokasi?`<span class="text-xs text-slate-400">• ${a.lokasi}</span>`:''}
+              ${u?badge(u.nama,catColor[u?.kategori]||'slate'):''}
+            </div>
+          </div>
+          <div class="flex gap-1">
+            <button onclick="editAktiviti('${a.id}')" class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"><svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"/></svg></button>
+            <button onclick="deleteAktiviti('${a.id}')" class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"><svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg></button>
+          </div>
+        </div>
+        ${a.deskripsi?`<p class="text-xs text-slate-500 mt-1.5">${a.deskripsi}</p>`:''}
+        ${a.tags?`<div class="flex flex-wrap gap-1 mt-2">${a.tags.split(',').map(t=>`<span class="text-[10px] font-medium bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">#${t.trim()}</span>`).join('')}</div>`:''}
+        ${imgs.length?`<div class="flex gap-1.5 mt-2">${imgs.slice(0,4).map(img=>`<img src="${img}" onclick="viewImg('${img}')" class="w-14 h-10 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity" onerror="this.style.display='none'">`).join('')}</div>`:''}
+      </div>
+    </div>`;}).join('');
+}
+function filterAktiviti(){renderAktiviti();}
+function editAktiviti(id){const a=activities.find(x=>x.id===id);if(!a)return;document.getElementById('aktiviti-edit-id').value=a.id;document.getElementById('aktiviti-tarikh').value=a.tarikh;document.getElementById('aktiviti-nama').value=a.nama;document.getElementById('aktiviti-lokasi').value=a.lokasi||'';document.getElementById('aktiviti-deskripsi').value=a.deskripsi||'';document.getElementById('aktiviti-tag').value=a.tags||'';populateUnitSelect('aktiviti-unit',a.unitId);openModal('modal-tambah-aktiviti');}
+function saveAktiviti(){
+  const eid=document.getElementById('aktiviti-edit-id').value;
+  const tarikh=document.getElementById('aktiviti-tarikh').value;
+  const nama=document.getElementById('aktiviti-nama').value.trim();
+  const unitId=document.getElementById('aktiviti-unit').value;
+  const lokasi=document.getElementById('aktiviti-lokasi').value.trim();
+  const deskripsi=document.getElementById('aktiviti-deskripsi').value.trim();
+  const tags=document.getElementById('aktiviti-tag').value.trim();
+  if(!tarikh||!nama){toast('Sila isi tarikh dan nama aktiviti','error');return;}
+  if(eid){const i=activities.findIndex(a=>a.id===eid);activities[i]={...activities[i],tarikh,nama,unitId,lokasi,deskripsi,tags};}
+  else activities.push({id:uid(),tarikh,nama,unitId,lokasi,deskripsi,tags});
+  saveData();closeModal('modal-tambah-aktiviti');renderAktiviti();toast(eid?'Aktiviti dikemaskini':'Aktiviti berjaya ditambah','success');
+}
+function deleteAktiviti(id){if(!confirm('Padam aktiviti ini?'))return;activities=activities.filter(a=>a.id!==id);images=images.filter(i=>i.activityId!==id);saveData();renderAktiviti();toast('Aktiviti dipadam','success');}
+
+// KEHADIRAN
+function loadKehadiran(){
+  const actId=document.getElementById('sel-aktiviti-hadir').value;
+  const el=document.getElementById('kehadiran-wrap');
+  if(!actId){el.innerHTML='';return;}
+  const act=activities.find(a=>a.id===actId);
+  const unit=units.find(u=>u.id===act?.unitId);
+  const unitStudents=unit?students.filter(s=>getStudentUnitIds(s).includes(unit.id)):students;
+  if(!unitStudents.length){el.innerHTML=emptyState('👤','Tiada murid dalam unit ini');return;}
+  el.innerHTML=`<div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+    <span class="text-sm text-slate-500">${unitStudents.length} murid dijumpai</span>
+    <div class="flex gap-2">
+      <button onclick="markAll('hadir')" class="flex items-center gap-1 text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 px-3 py-1.5 rounded-lg hover:bg-emerald-100 transition-colors"><svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Semua Hadir</button>
+      <button onclick="markAll('tidak')" class="flex items-center gap-1 text-xs font-semibold bg-red-50 text-red-700 border border-red-200 px-3 py-1.5 rounded-lg hover:bg-red-100 transition-colors"><svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Tidak Hadir</button>
+      <button onclick="saveAttendance()" class="flex items-center gap-1 text-xs font-semibold bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 transition-colors"><svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"/></svg> Simpan</button>
+    </div>
+  </div>
+  <div class="overflow-x-auto rounded-xl ring-1 ring-slate-200">
+  <table class="w-full text-sm">
+    <thead><tr class="bg-slate-50 border-b border-slate-200"><th class="px-4 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">ID</th><th class="px-4 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Nama</th><th class="px-4 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider hidden sm:table-cell">Kelas</th><th class="px-4 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Kehadiran</th></tr></thead>
+    <tbody class="divide-y divide-slate-50">${unitStudents.map(s=>{const att=attendance.find(a=>a.activityId===actId&&a.studentId===s.id);const status=att?att.status:'hadir';return`<tr class="table-row"><td class="px-4 py-3 text-xs text-slate-500 font-mono">${s.id}</td><td class="px-4 py-3 font-medium text-slate-800 text-sm">${s.nama}</td><td class="px-4 py-3 text-sm text-slate-500 hidden sm:table-cell">${s.kelas}</td><td class="px-4 py-3"><select class="att-status text-xs font-semibold px-2.5 py-1.5 rounded-lg border outline-none transition-all ${status==='hadir'?'bg-emerald-50 text-emerald-700 border-emerald-200':'bg-red-50 text-red-700 border-red-200'}" data-sid="${s.id}" data-aid="${actId}" onchange="this.className='att-status text-xs font-semibold px-2.5 py-1.5 rounded-lg border outline-none transition-all '+(this.value==='hadir'?'bg-emerald-50 text-emerald-700 border-emerald-200':'bg-red-50 text-red-700 border-red-200')"><option value="hadir" ${status==='hadir'?'selected':''}>✅ Hadir</option><option value="tidak" ${status==='tidak'?'selected':''}>❌ Tidak Hadir</option></select></td></tr>`;}).join('')}</tbody>
+  </table></div>`;
+}
+function markAll(status){document.querySelectorAll('.att-status').forEach(s=>{s.value=status;s.className='att-status text-xs font-semibold px-2.5 py-1.5 rounded-lg border outline-none transition-all '+(status==='hadir'?'bg-emerald-50 text-emerald-700 border-emerald-200':'bg-red-50 text-red-700 border-red-200');});}
+function saveAttendance(){document.querySelectorAll('.att-status').forEach(el=>{const{sid,aid}=el.dataset;const idx=attendance.findIndex(a=>a.activityId===aid&&a.studentId===sid);if(idx>=0)attendance[idx].status=el.value;else attendance.push({activityId:aid,studentId:sid,status:el.value});});saveData();toast('Kehadiran disimpan','success');}
+
+// PENYERTAAN
+function renderPenyertaan(){
+  const tb=document.getElementById('tb-penyertaan');
+  if(!participations.length){tb.innerHTML=`<tr><td colspan="6"><div class="py-8">${emptyState('🎯','Tiada rekod penyertaan')}</div></td></tr>`;return;}
+  const prColors={Sekolah:'blue',Daerah:'emerald',Bahagian:'amber',Negeri:'violet',Kebangsaan:'red'};
+  tb.innerHTML=[...participations].sort((a,b)=>new Date(b.tarikh)-new Date(a.tarikh)).map(p=>{
+    const s=students.find(x=>x.id===p.studentId);const u=units.find(x=>x.id===p.unitId);
+    return`<tr class="table-row"><td class="px-5 py-3.5"><div class="font-semibold text-slate-800 text-sm">${s?.nama||p.studentId}</div><div class="text-xs text-slate-400">${s?.kelas||''}</div></td><td class="px-5 py-3.5 hidden sm:table-cell text-sm text-slate-700">${p.nama}</td><td class="px-5 py-3.5">${badge(p.peringkat,prColors[p.peringkat]||'slate')}</td><td class="px-5 py-3.5 hidden md:table-cell text-xs text-slate-500">${p.tarikh}</td><td class="px-5 py-3.5 hidden lg:table-cell text-xs text-slate-600">${u?.nama||'—'}</td><td class="px-5 py-3.5 text-right"><button onclick="deletePenyertaan('${p.id}')" class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"><svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg></button></td></tr>`;}).join('');
+}
+function savePenyertaan(){
+  const studentId=document.getElementById('penyertaan-murid').value;
+  const nama=document.getElementById('penyertaan-nama').value.trim();
+  const peringkat=document.getElementById('penyertaan-peringkat').value;
+  const tarikh=document.getElementById('penyertaan-tarikh').value;
+  const unitId=document.getElementById('penyertaan-unit').value;
+  if(!studentId||!nama||!tarikh){toast('Sila isi semua maklumat','error');return;}
+  participations.push({id:uid(),studentId,nama,peringkat,tarikh,unitId});
+  saveData();closeModal('modal-tambah-penyertaan');renderPenyertaan();toast('Penyertaan berjaya ditambah','success');
+}
+function deletePenyertaan(id){participations=participations.filter(p=>p.id!==id);saveData();renderPenyertaan();toast('Rekod dipadam','success');}
+
+// PENCAPAIAN
+function renderPencapaian(){
+  const tb=document.getElementById('tb-pencapaian');
+  if(!achievements.length){tb.innerHTML=`<tr><td colspan="6"><div class="py-8">${emptyState('🥇','Tiada rekod pencapaian')}</div></td></tr>`;return;}
+  const achColors={Penyertaan:'slate','Tempat Ketiga':'amber','Tempat Kedua':'slate',Johan:'amber'};
+  const achIcons={Penyertaan:'🎗️','Tempat Ketiga':'🥉','Tempat Kedua':'🥈',Johan:'🥇'};
+  const prColors={Sekolah:'blue',Daerah:'emerald',Bahagian:'amber',Negeri:'violet',Kebangsaan:'red'};
+  tb.innerHTML=[...achievements].sort((a,b)=>new Date(b.tarikh)-new Date(a.tarikh)).map(a=>{
+    const s=students.find(x=>x.id===a.studentId);const u=units.find(x=>x.id===a.unitId);
+    return`<tr class="table-row"><td class="px-5 py-3.5"><div class="font-semibold text-slate-800 text-sm">${s?.nama||a.studentId}</div><div class="text-xs text-slate-400">${s?.kelas||''}</div></td><td class="px-5 py-3.5 hidden sm:table-cell text-sm text-slate-700">${a.nama}</td><td class="px-5 py-3.5">${badge(achIcons[a.tahap]+' '+a.tahap,achColors[a.tahap])}</td><td class="px-5 py-3.5 hidden md:table-cell">${badge(a.peringkat,prColors[a.peringkat]||'slate')}</td><td class="px-5 py-3.5 hidden lg:table-cell text-xs text-slate-500">${a.tarikh}</td><td class="px-5 py-3.5 text-right"><button onclick="deleteAchievement('${a.id}')" class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"><svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg></button></td></tr>`;}).join('');
+}
+function savePencapaian(){
+  const studentId=document.getElementById('pencapaian-murid').value;
+  const nama=document.getElementById('pencapaian-nama').value.trim();
+  const tahap=document.getElementById('pencapaian-tahap').value;
+  const peringkat=document.getElementById('pencapaian-peringkat').value;
+  const tarikh=document.getElementById('pencapaian-tarikh').value;
+  const unitId=document.getElementById('pencapaian-unit').value;
+  if(!studentId||!nama||!tarikh){toast('Sila isi semua maklumat','error');return;}
+  achievements.push({id:uid(),studentId,nama,tahap,peringkat,tarikh,unitId});
+  saveData();closeModal('modal-tambah-pencapaian');renderPencapaian();toast('Pencapaian berjaya ditambah','success');
+}
+function deleteAchievement(id){achievements=achievements.filter(a=>a.id!==id);saveData();renderPencapaian();toast('Rekod dipadam','success');}
+
+// GALERI
+// ─── GALERI ──────────────────────────────────────────────────────────────────
+
+// Temp store for pending upload URLs before commit (avoids stale closure bugs)
+let _galeriPending = {};
+
+function renderGaleri() {
+  const actId = document.getElementById('sel-aktiviti-galeri').value;
+  const up    = document.getElementById('upload-section');
+  const gal   = document.getElementById('galeri-display');
+
+  if (!actId) {
+    up.classList.add('hidden');
+    gal.innerHTML = '';
+    return;
+  }
+
+  up.classList.remove('hidden');
+  _updateSlotUI(actId);
+
+  const rec  = images.find(i => i.activityId === actId);
+  const imgs = rec ? rec.images : [];
+
+  if (!imgs.length) {
+    gal.innerHTML = emptyState('📷', 'Tiada gambar lagi. Upload gambar di atas.');
+    return;
+  }
+
+  // Bug fix #3: Use data-index + event delegation — no inline base64 in onclick
+  gal.innerHTML = `
+    <div class="flex items-center justify-between mb-3">
+      <span class="text-xs font-semibold text-slate-500">${imgs.length} daripada 4 gambar</span>
+      <span class="text-[10px] text-slate-400">${settings.gasUrl ? '☁️ Disimpan ke Google Drive' : '💾 Disimpan secara tempatan'}</span>
+    </div>
+    <div id="galeri-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+      ${imgs.map((img, i) => `
+        <div class="relative group rounded-xl overflow-hidden aspect-[4/3] bg-slate-100 cursor-pointer" data-img-index="${i}">
+          <img src="${img}"
+               class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+               onerror="this.closest('[data-img-index]').classList.add('hidden')">
+          <div class="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/40 transition-all flex items-center justify-center gap-2">
+            <button data-view="${i}"
+                    class="opacity-0 group-hover:opacity-100 bg-white text-slate-700 text-[10px] font-bold px-2.5 py-1 rounded-lg transition-opacity hover:bg-slate-100">
+              <svg class="w-3 h-3 inline mr-0.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>Lihat
+            </button>
+            <button data-del="${i}"
+                    class="opacity-0 group-hover:opacity-100 bg-red-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg transition-opacity hover:bg-red-700">
+              <svg class="w-3 h-3 inline mr-0.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9"/></svg>Padam
+            </button>
+          </div>
+        </div>`).join('')}
+    </div>`;
+
+  // Event delegation — no inline handlers with long base64 strings
+  document.getElementById('galeri-grid').addEventListener('click', function handler(e) {
+    const viewBtn = e.target.closest('[data-view]');
+    const delBtn  = e.target.closest('[data-del]');
+    if (viewBtn) { e.stopPropagation(); viewImgByIndex(actId, parseInt(viewBtn.dataset.view)); }
+    if (delBtn)  { e.stopPropagation(); deleteImg(actId, parseInt(delBtn.dataset.del)); }
+  }, { once: true }); // once:true prevents duplicate listeners on re-render
+}
+
+function loadGaleri() { renderGaleri(); }
+
+// Bug fix #1: Slot counter UI
+function _updateSlotUI(actId) {
+  const imgs  = (images.find(i => i.activityId === actId) || {}).images || [];
+  const used  = imgs.length;
+  const free  = 4 - used;
+  const slots = document.getElementById('img-slots');
+  const txt   = document.getElementById('img-slot-text');
+  const input = document.getElementById('img-upload');
+
+  if (slots) slots.innerHTML = [0,1,2,3].map(i =>
+    `<div class="w-6 h-6 rounded-lg border-2 ${i < used ? 'bg-emerald-400 border-emerald-400' : 'bg-slate-100 border-slate-300'}"></div>`
+  ).join('');
+
+  if (txt)   txt.textContent = free > 0 ? `${used}/4 gambar — boleh tambah ${free} lagi` : '4/4 gambar — had maksimum dicapai';
+  if (input) input.disabled  = free <= 0;
+
+  const dz = document.getElementById('galeri-dropzone');
+  if (dz) dz.style.opacity = free <= 0 ? '0.5' : '1';
+}
+
+// Drag & drop support
+function galeriDrag(e, on) {
+  e.preventDefault();
+  document.getElementById('galeri-dropzone')?.classList.toggle('drag-over', on);
+}
+function galeriDrop(e) {
+  e.preventDefault();
+  galeriDrag(e, false);
+  const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+  if (files.length) _processImageFiles(files);
+}
+
+// Bug fix #4: Accept input element to properly reset it after upload
+function handleImgUpload(inputEl) {
+  const files = Array.from(inputEl.files);
+  if (!files.length) return;
+  _processImageFiles(files);
+  // Reset input so same file can be re-selected
+  inputEl.value = '';
+}
+
+function _processImageFiles(files) {
+  const actId = document.getElementById('sel-aktiviti-galeri').value;
+  if (!actId) { toast('Sila pilih aktiviti dahulu', 'error'); return; }
+
+  const existing = (images.find(i => i.activityId === actId) || {}).images || [];
+  const free = 4 - existing.length;
+  if (free <= 0) { toast('Had 4 gambar telah dicapai', 'error'); return; }
+
+  const toUpload = files.slice(0, free);
+  if (files.length > free) toast(`Hanya ${free} gambar pertama akan dimuatnaik`, '');
+
+  // Validate file size (5MB each)
+  const oversized = toUpload.filter(f => f.size > 5 * 1024 * 1024);
+  if (oversized.length) {
+    toast(`${oversized.map(f=>f.name).join(', ')} melebihi 5MB`, 'error');
+    return;
+  }
+
+  _showUploadProgress(true, toUpload.length);
+
+  // Bug fix #1: Use Promise.all to ensure all operations complete before re-render
+  const promises = toUpload.map((f, idx) => _uploadOneImage(f, actId, idx, toUpload.length));
+
+  Promise.all(promises)
+    .then(results => {
+      const ok = results.filter(r => r.ok).length;
+      const fail = results.filter(r => !r.ok).length;
+      _showUploadProgress(false);
+      renderGaleri();
+      if (ok > 0) toast(`${ok} gambar berjaya disimpan${fail ? `, ${fail} gagal` : ''}`, 'success');
+      else toast('Gagal menyimpan gambar', 'error');
+    });
+}
+
+// Upload one image — returns a promise
+function _uploadOneImage(file, actId, idx, total) {
+  return new Promise(resolve => {
+    const reader = new FileReader();
+    reader.onerror = () => {
+      _logUpload(file.name, 'error');
+      resolve({ ok: false, file });
+    };
+    reader.onload = async e => {
+      const dataUrl = e.target.result;             // full data:image/...;base64,xxx
+      const b64only = dataUrl.split(',')[1];        // just the base64 part
+      _logUpload(file.name, 'loading');
+
+      if (settings.gasUrl) {
+        // ── Google Drive upload path ──────────────────────────────────────────
+        try {
+          const act = activities.find(a => a.id === actId) || {};
+          const unit = units.find(u => u.id === act.unitId) || {};
+          const payload = JSON.stringify({
+            action:       'uploadImage',
+            base64:       b64only,
+            mimeType:     file.type,
+            filename:     file.name,
+            activityId:   actId,
+            activityName: act.nama    || '',
+            unitName:     unit.nama   || '',
+            kategori:     unit.kategori || '',
+            tahun:        (act.tarikh || '').slice(0, 4) || String(new Date().getFullYear()),
+            driveRootId:  settings.driveId || ''
+          });
+
+          // Bug fix #2: send as text/plain to avoid CORS preflight
+          const res = await fetch(settings.gasUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: payload
+          });
+
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const json = await res.json();
+
+          if (json.url) {
+            addImageUrl(actId, json.url);
+            _logUpload(file.name, 'success', '☁️ Google Drive');
+            _updateProgressBar(idx + 1, total);
+            resolve({ ok: true });
+          } else {
+            throw new Error(json.error || 'Tiada URL dikembalikan');
+          }
+        } catch (err) {
+          console.warn('GAS upload failed, saving locally:', err);
+          // Graceful fallback — save as base64 locally
+          addImageUrl(actId, dataUrl);
+          _logUpload(file.name, 'warning', '💾 Simpan tempatan (GAS gagal)');
+          _updateProgressBar(idx + 1, total);
+          resolve({ ok: true }); // still counts as OK (saved locally)
+        }
+      } else {
+        // ── Local storage path (no GAS URL configured) ────────────────────────
+        addImageUrl(actId, dataUrl);
+        _logUpload(file.name, 'success', '💾 Simpan tempatan');
+        _updateProgressBar(idx + 1, total);
+        resolve({ ok: true });
+      }
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function _showUploadProgress(show, total = 0) {
+  const el = document.getElementById('upload-progress');
+  const log = document.getElementById('upload-log');
+  if (!el) return;
+  if (show) {
+    el.classList.remove('hidden');
+    if (log) log.innerHTML = '';
+    _updateProgressBar(0, total);
+  } else {
+    setTimeout(() => el.classList.add('hidden'), 1500);
+  }
+}
+
+function _updateProgressBar(done, total) {
+  const bar  = document.getElementById('upload-progress-bar');
+  const txt  = document.getElementById('upload-progress-text');
+  if (bar) bar.style.width = total ? `${(done/total)*100}%` : '0%';
+  if (txt) txt.textContent = `${done} / ${total}`;
+}
+
+function _logUpload(name, status, note = '') {
+  const log = document.getElementById('upload-log');
+  if (!log) return;
+  const colors = { loading:'text-blue-500', success:'text-emerald-600', error:'text-red-500', warning:'text-amber-500' };
+  const icons  = { loading:'⏳', success:'✅', error:'❌', warning:'⚠️' };
+  // Update existing entry or add new
+  const existing = log.querySelector(`[data-file="${CSS.escape(name)}"]`);
+  const html = `<div data-file="${name}" class="flex items-center gap-2 text-[11px] ${colors[status]||'text-slate-500'}">
+    <span>${icons[status]||'•'}</span>
+    <span class="truncate max-w-[200px]">${name}</span>
+    ${note ? `<span class="text-slate-400 ml-auto">${note}</span>` : ''}
+  </div>`;
+  if (existing) existing.outerHTML = html;
+  else log.insertAdjacentHTML('beforeend', html);
+}
+
+// Bug fix #3: View by index — never embed long URLs/base64 in onclick attributes
+function viewImgByIndex(actId, index) {
+  const rec  = images.find(i => i.activityId === actId);
+  const imgs = rec ? rec.images : [];
+  if (imgs[index]) viewImg(imgs[index]);
+}
+
+function addImageUrl(actId, url) {
+  const idx = images.findIndex(i => i.activityId === actId);
+  if (idx >= 0) {
+    if (images[idx].images.length < 4) images[idx].images.push(url);
+  } else {
+    images.push({ activityId: actId, images: [url] });
+  }
+  saveData();
+}
+
+function deleteImg(actId, imgIdx) {
+  if (!confirm('Padam gambar ini?')) return;
+  const idx = images.findIndex(i => i.activityId === actId);
+  if (idx >= 0) {
+    images[idx].images.splice(imgIdx, 1);
+    if (!images[idx].images.length) images.splice(idx, 1);
+  }
+  saveData();
+  renderGaleri();
+  toast('Gambar dipadam', 'success');
+}
+
+// CARIAN
+function doCarian(){
+  const kw=document.getElementById('cari-keyword').value.toLowerCase();
+  const unitId=document.getElementById('cari-unit').value;
+  const kategori=document.getElementById('cari-kategori').value;
+  const tahun=document.getElementById('cari-tahun').value;
+  let list=activities.filter(a=>{
+    const u=units.find(u=>u.id===a.unitId);const imgs=(images.find(i=>i.activityId===a.id)||{}).images||[];
+    if(!imgs.length)return false;
+    if(kw&&!(a.nama.toLowerCase().includes(kw)||(a.tags||'').toLowerCase().includes(kw)||(a.deskripsi||'').toLowerCase().includes(kw)))return false;
+    if(unitId&&a.unitId!==unitId)return false;
+    if(kategori&&u?.kategori!==kategori)return false;
+    if(tahun&&!a.tarikh?.startsWith(tahun))return false;
+    return true;
+  });
+  const el=document.getElementById('hasil-carian');
+  if(!list.length){el.innerHTML=emptyState('🔍','Tiada hasil ditemui. Cuba kata kunci berbeza.');return;}
+  const catColor={'Kelab & Persatuan':'blue','Sukan & Permainan':'emerald','Badan Beruniform':'amber'};
+  el.innerHTML=`<div class="text-xs text-slate-500 mb-3">${list.length} aktiviti dijumpai</div>`+list.map(a=>{
+    const u=units.find(u=>u.id===a.unitId);const imgs=(images.find(i=>i.activityId===a.id)||{}).images||[];
+    return`<div class="bg-white rounded-2xl ring-1 ring-slate-200 p-5 mb-3">
+      <div class="flex items-start justify-between mb-3"><div><div class="font-semibold text-slate-800">${a.nama}</div><div class="flex flex-wrap gap-2 mt-1 text-xs text-slate-400"><span>📅 ${a.tarikh}</span>${u?`<span>${badge(u.nama,catColor[u?.kategori]||'slate')}</span>`:''}${u?`<span class="text-xs text-slate-400">${u.kategori}</span>`:''}</div></div></div>
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">${imgs.map(img=>`<div class="relative group rounded-xl overflow-hidden aspect-[4/3] bg-slate-100 cursor-pointer" onclick="viewImg('${img}')"><img src="${img}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" onerror="this.parentElement.style.display='none'"><div class="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/30 transition-all flex items-center justify-center"><svg class="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 15.803 7.5 7.5 0 0016.803 15.803zM10.5 7.5v6m3-3h-6"/></svg></div></div>`).join('')}</div>
+    </div>`;}).join('');
+}
+
+// STATISTIK
+function renderStatistik(){
+  renderRankingMurid();
+  const cats=['Kelab & Persatuan','Sukan & Permainan','Badan Beruniform'];
+  const counts=cats.map(c=>{const ids=units.filter(u=>u.kategori===c).map(u=>u.id);return participations.filter(p=>ids.includes(p.unitId)).length;});
+  if(chartS1)chartS1.destroy();
+  chartS1=new Chart(document.getElementById('chartStat1'),{type:'pie',data:{labels:cats,datasets:[{data:counts,backgroundColor:['#3b82f6','#10b981','#f59e0b'],borderWidth:0}]},options:{plugins:{legend:{position:'bottom',labels:{font:{size:11,family:'DM Sans'},padding:12}}}}});
+  const prs=['Sekolah','Daerah','Bahagian','Negeri','Kebangsaan'];
+  const achTypes=['Penyertaan','Tempat Ketiga','Tempat Kedua','Johan'];
+  const colors=['#94a3b8','#f59e0b','#e2e8f0','#eab308'];
+  const datasets=achTypes.map((t,i)=>({label:t,data:prs.map(p=>achievements.filter(a=>a.peringkat===p&&a.tahap===t).length),backgroundColor:colors[i],borderRadius:4}));
+  if(chartS2)chartS2.destroy();
+  chartS2=new Chart(document.getElementById('chartStat2'),{type:'bar',data:{labels:prs,datasets},options:{plugins:{legend:{position:'bottom',labels:{font:{size:10,family:'DM Sans'},padding:10}}},scales:{x:{stacked:true,grid:{display:false},ticks:{font:{size:10}}},y:{stacked:true,beginAtZero:true,grid:{color:'#f1f5f9'},ticks:{font:{size:10},stepSize:1}}}}});
+  const sorted=[...units].map(u=>({nama:u.nama,count:activities.filter(a=>a.unitId===u.id).length})).sort((a,b)=>b.count-a.count).slice(0,10);
+  if(chartS3)chartS3.destroy();
+  chartS3=new Chart(document.getElementById('chartStat3'),{type:'bar',data:{labels:sorted.map(u=>u.nama),datasets:[{label:'Aktiviti',data:sorted.map(u=>u.count),backgroundColor:'#3b82f6',borderRadius:6}]},options:{indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,ticks:{stepSize:1,font:{size:10}},grid:{color:'#f1f5f9'}},y:{grid:{display:false},ticks:{font:{size:10}}}}}});
+}
+function renderRankingMurid(){
+  const ranked=[...students].map(s=>{const sc=getMuridScore(s.id);const score=sc.johan*4+sc.kedua*3+sc.ketiga*2+sc.penyertaan;return{...s,...sc,score};}).sort((a,b)=>b.score-a.score).slice(0,10);
+  const el=document.getElementById('ranking-murid');
+  if(!ranked.length){el.innerHTML=emptyState('🏆','Tiada data');return;}
+  el.innerHTML=ranked.map((s,i)=>`
+    <div class="flex items-center gap-3 py-3 ${i<ranked.length-1?'border-b border-slate-50':''}">
+      <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${i===0?'bg-amber-100 text-amber-700':i===1?'bg-slate-200 text-slate-600':i===2?'bg-orange-100 text-orange-700':'bg-slate-100 text-slate-500'}">${i+1}</div>
+      <div class="flex-1 min-w-0">
+        <div class="font-semibold text-slate-800 text-sm truncate">${s.nama}</div>
+        <div class="text-xs text-slate-400">${s.kelas}</div>
+      </div>
+      <div class="flex flex-wrap gap-1.5 justify-end">
+        ${s.johan?`<span class="text-[10px] font-semibold bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full">🥇 ${s.johan}</span>`:''}
+        ${s.kedua?`<span class="text-[10px] font-semibold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">🥈 ${s.kedua}</span>`:''}
+        ${s.ketiga?`<span class="text-[10px] font-semibold bg-orange-50 text-orange-700 px-2 py-0.5 rounded-full">🥉 ${s.ketiga}</span>`:''}
+        <span class="text-[10px] font-bold bg-violet-50 text-violet-700 px-2 py-0.5 rounded-full">⭐ ${s.score}</span>
+      </div>
+    </div>`).join('');
+}
+
+// LAPORAN
+function janaLaporan(){
+  const sekolah=document.getElementById('rpt-sekolah').value||settings.sekolah||'Sekolah';
+  const tahun=document.getElementById('rpt-tahun').value||'2026';
+  const pengetua=document.getElementById('rpt-pengetua').value||'—';
+  const guru=document.getElementById('rpt-guru').value||'—';
+  const fa=activities.filter(a=>a.tarikh?.startsWith(tahun));
+  const fp=participations.filter(p=>p.tarikh?.startsWith(tahun));
+  const fach=achievements.filter(a=>a.tarikh?.startsWith(tahun));
+  const ranked=[...students].map(s=>{const sc=getMuridScore(s.id);return{...s,...sc,score:sc.johan*4+sc.kedua*3+sc.ketiga*2+sc.penyertaan};}).sort((a,b)=>b.score-a.score).slice(0,5);
+  const achIcons={Penyertaan:'🎗️','Tempat Ketiga':'🥉','Tempat Kedua':'🥈',Johan:'🥇'};
+  const imgSection=fa.filter(a=>(images.find(i=>i.activityId===a.id)||{}).images?.length).slice(0,6).map(a=>{const imgs=(images.find(i=>i.activityId===a.id)||{}).images||[];return`<div style="margin-bottom:16px"><div style="font-weight:700;font-size:12px;margin-bottom:6px;color:#1e293b">${a.nama} (${a.tarikh})</div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">${imgs.slice(0,3).map(img=>`<img src="${img}" style="width:100%;height:100px;object-fit:cover;border-radius:6px" onerror="this.style.display='none'">`).join('')}</div></div>`;}).join('');
+  const html=`<div id="report-preview" style="font-family:'DM Sans',sans-serif;background:white;padding:40px;max-width:860px;margin:0 auto;color:#1e293b">
+    <div style="text-align:center;padding:40px 0 32px;border-bottom:3px solid #0f172a;margin-bottom:36px">
+      <div style="font-size:52px;margin-bottom:12px"><img src="https://i.postimg.cc/G23tcFnW/Logo-SK-Adin.png" alt="Logo" style="width:80px;height:80px;object-fit:contain;margin:0 auto" onerror="this.outerHTML='🏆'"></div>
+      <div style="font-size:14px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:1px">LAPORAN TAHUNAN</div>
+      <div style="font-family:'DM Serif Display',serif;font-size:28px;font-weight:700;color:#0f172a;margin:8px 0">Aktiviti Kokurikulum</div>
+      <div style="font-size:22px;font-weight:700;color:#0284c7;margin-bottom:8px">${sekolah}</div>
+      <div style="font-size:14px;color:#64748b">Tahun ${tahun} &bull; Pengetua: ${pengetua} &bull; Guru Kokurikulum: ${guru}</div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:36px">${[['👥',students.length,'Murid'],['🏫',units.length,'Unit'],['📅',fa.length,'Aktiviti'],['🏅',fach.length,'Pencapaian']].map(([ic,v,lb])=>`<div style="text-align:center;background:#f8fafc;border-radius:12px;padding:16px"><div style="font-size:24px">${ic}</div><div style="font-size:26px;font-weight:800;color:#0f172a;line-height:1">${v}</div><div style="font-size:11px;color:#64748b;margin-top:4px">${lb}</div></div>`).join('')}</div>
+    ${['Kelab & Persatuan','Sukan & Permainan','Badan Beruniform'].map(cat=>{const cu=units.filter(u=>u.kategori===cat);if(!cu.length)return'';return`<div style="margin-bottom:28px"><h2 style="font-size:15px;font-weight:700;color:#0f172a;border-bottom:2px solid #0284c7;padding-bottom:6px;margin-bottom:12px">📚 ${cat}</h2><table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:#0f172a;color:white"><th style="padding:8px 12px;text-align:left">Nama Unit</th><th style="padding:8px 12px;text-align:left">Guru Penasihat</th><th style="padding:8px 12px;text-align:left">Ahli</th></tr></thead><tbody>${cu.map((u,i)=>`<tr style="background:${i%2===0?'white':'#f8fafc'}"><td style="padding:7px 12px;border-bottom:1px solid #e2e8f0">${u.nama}</td><td style="padding:7px 12px;border-bottom:1px solid #e2e8f0">${u.guru||'—'}${u.guru2?`<br><span style="color:#64748b">${u.guru2}</span>`:''}</td><td style="padding:7px 12px;border-bottom:1px solid #e2e8f0">${students.filter(s=>getStudentUnitIds(s).includes(u.id)).length} murid</td></tr>`).join('')}</tbody></table></div>`;}).join('')}
+    <div style="margin-bottom:28px"><h2 style="font-size:15px;font-weight:700;color:#0f172a;border-bottom:2px solid #10b981;padding-bottom:6px;margin-bottom:12px">🏅 Statistik Pencapaian ${tahun}</h2><table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:#0f172a;color:white"><th style="padding:8px 12px;text-align:left">Pencapaian</th>${['Sekolah','Daerah','Bahagian','Negeri','Kebangsaan'].map(p=>`<th style="padding:8px 12px;text-align:center">${p}</th>`).join('')}</tr></thead><tbody>${['Penyertaan','Tempat Ketiga','Tempat Kedua','Johan'].map((t,i)=>`<tr style="background:${i%2===0?'white':'#f8fafc'}"><td style="padding:7px 12px;border-bottom:1px solid #e2e8f0;font-weight:600">${achIcons[t]} ${t}</td>${['Sekolah','Daerah','Bahagian','Negeri','Kebangsaan'].map(p=>`<td style="padding:7px 12px;text-align:center;border-bottom:1px solid #e2e8f0">${fach.filter(a=>a.tahap===t&&a.peringkat===p).length}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
+    <div style="margin-bottom:28px"><h2 style="font-size:15px;font-weight:700;color:#0f172a;border-bottom:2px solid #f59e0b;padding-bottom:6px;margin-bottom:12px">⭐ Murid Paling Aktif</h2><table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:#0f172a;color:white"><th style="padding:8px 12px;text-align:left">Bil.</th><th style="padding:8px 12px;text-align:left">Nama</th><th style="padding:8px 12px;text-align:left">Kelas</th><th style="padding:8px 12px;text-align:center">🥇</th><th style="padding:8px 12px;text-align:center">🥈</th><th style="padding:8px 12px;text-align:center">🥉</th></tr></thead><tbody>${ranked.map((s,i)=>`<tr style="background:${i%2===0?'white':'#f8fafc'}"><td style="padding:7px 12px;border-bottom:1px solid #e2e8f0">${i+1}</td><td style="padding:7px 12px;border-bottom:1px solid #e2e8f0;font-weight:600">${s.nama}</td><td style="padding:7px 12px;border-bottom:1px solid #e2e8f0">${s.kelas}</td><td style="padding:7px 12px;text-align:center;border-bottom:1px solid #e2e8f0">${s.johan}</td><td style="padding:7px 12px;text-align:center;border-bottom:1px solid #e2e8f0">${s.kedua}</td><td style="padding:7px 12px;text-align:center;border-bottom:1px solid #e2e8f0">${s.ketiga}</td></tr>`).join('')}</tbody></table></div>
+    <div style="margin-bottom:28px"><h2 style="font-size:15px;font-weight:700;color:#0f172a;border-bottom:2px solid #8b5cf6;padding-bottom:6px;margin-bottom:12px">📅 Aktiviti ${tahun}</h2><table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:#0f172a;color:white"><th style="padding:8px 12px;text-align:left">Tarikh</th><th style="padding:8px 12px;text-align:left">Nama Aktiviti</th><th style="padding:8px 12px;text-align:left">Unit</th><th style="padding:8px 12px;text-align:left">Lokasi</th></tr></thead><tbody>${fa.sort((a,b)=>new Date(a.tarikh)-new Date(b.tarikh)).map((a,i)=>`<tr style="background:${i%2===0?'white':'#f8fafc'}"><td style="padding:7px 12px;border-bottom:1px solid #e2e8f0">${a.tarikh}</td><td style="padding:7px 12px;border-bottom:1px solid #e2e8f0;font-weight:600">${a.nama}</td><td style="padding:7px 12px;border-bottom:1px solid #e2e8f0">${units.find(u=>u.id===a.unitId)?.nama||'—'}</td><td style="padding:7px 12px;border-bottom:1px solid #e2e8f0">${a.lokasi||'—'}</td></tr>`).join('')}</tbody></table></div>
+    ${imgSection?`<div style="margin-bottom:28px"><h2 style="font-size:15px;font-weight:700;color:#0f172a;border-bottom:2px solid #64748b;padding-bottom:6px;margin-bottom:12px">📷 Dokumentasi Bergambar</h2>${imgSection}</div>`:''}
+    <div style="margin-top:60px;border-top:2px solid #0f172a;padding-top:24px;display:grid;grid-template-columns:1fr 1fr;gap:48px;text-align:center;font-size:12px"><div><div style="margin-bottom:48px;border-bottom:1px solid #64748b;padding-bottom:4px"></div><div style="font-weight:700">${pengetua}</div><div style="color:#64748b">Pengetua / Guru Besar</div></div><div><div style="margin-bottom:48px;border-bottom:1px solid #64748b;padding-bottom:4px"></div><div style="font-weight:700">${guru}</div><div style="color:#64748b">Guru Kokurikulum</div></div></div>
+  </div>`;
+  const c=document.getElementById('report-container');
+  c.className='bg-white rounded-2xl ring-1 ring-slate-200 overflow-hidden mt-4';
+  c.style.display='block';c.innerHTML=html;
+  document.getElementById('btn-export-pdf').classList.remove('hidden');
+  c.scrollIntoView({behavior:'smooth'});
+  toast('Laporan tahunan berjaya dijana!','success');
+}
+function eksportPDF(){const el=document.getElementById('report-preview');if(!el){toast('Jana laporan dahulu','error');return;}html2pdf().set({margin:10,filename:`Laporan_Kokurikulum_${document.getElementById('rpt-tahun').value||'2026'}.pdf`,image:{type:'jpeg',quality:.92},html2canvas:{scale:2,useCORS:true},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}}).from(el).save();toast('PDF sedang dijana...','success');}
+
+// TETAPAN
+// ─── TETAPAN ─────────────────────────────────────────────────────────────────
+
+function loadTetapan() {
+  document.getElementById('set-gas-url').value    = settings.gasUrl    || '';
+  document.getElementById('set-drive-id').value   = settings.driveId   || '';
+  document.getElementById('set-sekolah').value    = settings.sekolah   || '';
+  document.getElementById('set-daerah').value     = settings.daerah    || '';
+  document.getElementById('set-pengetua').value   = settings.pengetua  || '';
+  document.getElementById('set-guru-koku').value  = settings.guruKoku  || '';
+}
+
+async function saveTetapan() {
+  settings.gasUrl   = document.getElementById('set-gas-url').value.trim();
+  settings.driveId  = document.getElementById('set-drive-id').value.trim();
+  settings.sekolah  = document.getElementById('set-sekolah').value.trim();
+  settings.daerah   = document.getElementById('set-daerah').value.trim();
+  settings.pengetua = document.getElementById('set-pengetua').value.trim();
+  settings.guruKoku = document.getElementById('set-guru-koku').value.trim();
+  DB.setSingle('settings', settings);
+
+  const el = document.getElementById('sidebar-school');
+  if (el) el.textContent = settings.sekolah || 'Nama Sekolah';
+
+  // Sync settings to Google Sheets if URL configured
+  if (settings.gasUrl) {
+    try {
+      const rows = [
+        ['key', 'value'],
+        ['gasUrl',   settings.gasUrl],
+        ['driveId',  settings.driveId],
+        ['sekolah',  settings.sekolah],
+        ['daerah',   settings.daerah],
+        ['pengetua', settings.pengetua],
+        ['guruKoku', settings.guruKoku],
+        ['lastSaved', new Date().toISOString()],
+      ];
+      await gasPost({ action: 'sync', tab: 'Settings', rows });
+      toast('Tetapan disimpan & sync ke Sheets ✓', 'success');
+    } catch (e) {
+      toast('Tetapan disimpan tempatan (GAS gagal)', '');
+    }
+  } else {
+    toast('Tetapan disimpan (tiada GAS URL)', 'success');
+  }
+}
+
+function clearAllData() {
+  if (!confirm('AMARAN: Semua data tempatan akan dipadam!')) return;
+  if (!confirm('Pasti? Tindakan ini tidak boleh dibatalkan.')) return;
+  ['students','units','activities','attendance','participations','achievements','images']
+    .forEach(k => localStorage.removeItem('koku_' + k));
+  loadData();
+  renderDashboard();
+  toast('Semua data tempatan telah dipadam', 'success');
+  nav('dashboard', document.querySelector('.nav-item'));
+}
+
+// ─── SYNC SHEETS (pengguna biasa) ────────────────────────────────────────────
+// Hantar SEMUA data dengan schema penuh (semua field, termasuk ID)
+// supaya admin boleh import balik tanpa kehilangan data
+
+async function syncGSheets() {
+  if (!settings.gasUrl) { toast('Tetapkan Apps Script URL dalam Tetapan dahulu', 'error'); return; }
+
+  const syncBtn = document.querySelector('[onclick="syncGSheets()"]');
+  if (syncBtn) { syncBtn.disabled = true; syncBtn.textContent = 'Menyegerak...'; }
+
+  const tabs = [
+    {
+      tab: 'Settings',
+      rows: [
+        ['key','value'],
+        ['gasUrl',   settings.gasUrl   || ''],
+        ['driveId',  settings.driveId  || ''],
+        ['sekolah',  settings.sekolah  || ''],
+        ['daerah',   settings.daerah   || ''],
+        ['pengetua', settings.pengetua || ''],
+        ['guruKoku', settings.guruKoku || ''],
+        ['lastSync', new Date().toISOString()],
+      ]
+    },
+    {
+      tab: 'Students',
+      rows: [
+        ['id','nama','kelas','jantina','unitBB','unitBBNama','unitKP','unitKPNama','unitSP','unitSPNama'],
+        ...students.map(s => [
+          s.id, s.nama, s.kelas, s.jantina,
+          s.unitBB||'', units.find(u=>u.id===s.unitBB)?.nama||'',
+          s.unitKP||'', units.find(u=>u.id===s.unitKP)?.nama||'',
+          s.unitSP||'', units.find(u=>u.id===s.unitSP)?.nama||'',
+        ])
+      ]
+    },
+    {
+      tab: 'Units',
+      rows: [
+        ['id','nama','kategori','guru','guru2'],
+        ...units.map(u => [u.id, u.nama, u.kategori, u.guru || '', u.guru2 || ''])
+      ]
+    },
+    {
+      tab: 'Activities',
+      rows: [
+        ['id','tarikh','nama','unitId','unitNama','lokasi','deskripsi','tags'],
+        ...activities.map(a => [
+          a.id, a.tarikh, a.nama, a.unitId || '',
+          units.find(u => u.id === a.unitId)?.nama || '',
+          a.lokasi || '', a.deskripsi || '', a.tags || ''
+        ])
+      ]
+    },
+    {
+      tab: 'Participation',
+      rows: [
+        ['id','studentId','studentNama','nama','peringkat','tarikh','unitId','unitNama'],
+        ...participations.map(p => [
+          p.id, p.studentId,
+          students.find(s => s.id === p.studentId)?.nama || p.studentId,
+          p.nama, p.peringkat, p.tarikh, p.unitId || '',
+          units.find(u => u.id === p.unitId)?.nama || ''
+        ])
+      ]
+    },
+    {
+      tab: 'Achievements',
+      rows: [
+        ['id','studentId','studentNama','nama','tahap','peringkat','tarikh','unitId','unitNama'],
+        ...achievements.map(a => [
+          a.id, a.studentId,
+          students.find(s => s.id === a.studentId)?.nama || a.studentId,
+          a.nama, a.tahap, a.peringkat, a.tarikh, a.unitId || '',
+          units.find(u => u.id === a.unitId)?.nama || ''
+        ])
+      ]
+    },
+    {
+      tab: 'Attendance',
+      rows: [
+        ['activityId','activityNama','studentId','studentNama','status'],
+        ...attendance.map(att => [
+          att.activityId,
+          activities.find(a => a.id === att.activityId)?.nama || att.activityId,
+          att.studentId,
+          students.find(s => s.id === att.studentId)?.nama || att.studentId,
+          att.status
+        ])
+      ]
+    },
+    {
+      tab: 'Images',
+      rows: [
+        ['activityId','activityNama','imageIndex','url'],
+        ...images.flatMap(rec => {
+          const act = activities.find(a => a.id === rec.activityId);
+          return (rec.images || []).map((url, i) => [
+            rec.activityId, act?.nama || rec.activityId, i + 1, url
+          ]);
+        })
+      ]
+    }
+  ];
+
+  let ok = 0, fail = 0;
+  for (const t of tabs) {
+    try {
+      await gasPost({ action: 'sync', tab: t.tab, rows: t.rows });
+      ok++;
+    } catch (e) {
+      fail++;
+      console.error('Sync failed for tab', t.tab, e);
+    }
+  }
+
+  if (syncBtn) {
+    syncBtn.disabled = false;
+    syncBtn.innerHTML = `<svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.338-2.32 5.75 5.75 0 011.244 11.096"/></svg><span class="hidden sm:inline">Sync Sheets</span>`;
+  }
+
+  if (fail === 0) toast(`${ok} tab berjaya disegerakkan ✓`, 'success');
+  else toast(`${ok} berjaya, ${fail} tab gagal`, 'error');
+}
+
+// ─── ADMIN IMPORT dari Google Sheets ─────────────────────────────────────────
+
+async function previewSheetsData() {
+  if (!settings.gasUrl) { toast('Sila isi Apps Script URL dalam Tetapan', 'error'); return; }
+  const tabs = _getCheckedTabs();
+  if (!tabs.length) { toast('Pilih sekurang-kurangnya satu tab', 'error'); return; }
+
+  setImportStatus('⏳ Memuatkan data dari Sheets...');
+  const preview = document.getElementById('import-preview');
+  preview.className = 'mt-4';
+  preview.innerHTML = '<div class="text-xs text-slate-400 animate-pulse">Memuatkan...</div>';
+
+  const results = await _fetchAllTabs(tabs);
+  let html = '';
+  for (const [tab, data] of Object.entries(results)) {
+    if (data.error) {
+      html += `<div class="mb-3 p-3 bg-red-50 rounded-xl text-xs text-red-600">❌ <strong>${tab}</strong>: ${data.error}</div>`;
+      continue;
+    }
+    const rows = data.rows || [];
+    if (!rows.length) {
+      html += `<div class="mb-3 p-3 bg-slate-50 rounded-xl text-xs text-slate-400">⚠️ <strong>${tab}</strong>: Tiada data</div>`;
+      continue;
+    }
+    const headers = rows[0];
+    const body    = rows.slice(1);
+    html += `
+      <div class="mb-4">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="text-xs font-bold text-slate-700">${tab}</span>
+          <span class="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-semibold">${body.length} rekod</span>
+        </div>
+        <div class="overflow-x-auto rounded-xl ring-1 ring-slate-200 max-h-40 overflow-y-auto">
+          <table class="w-full text-[10px]">
+            <thead><tr class="bg-slate-800">${headers.map(h => `<th class="px-2 py-1.5 text-left text-white font-semibold whitespace-nowrap">${h}</th>`).join('')}</tr></thead>
+            <tbody class="divide-y divide-slate-100">${body.slice(0,5).map(r => `<tr>${r.map(c => `<td class="px-2 py-1.5 text-slate-600 whitespace-nowrap max-w-[120px] truncate">${c}</td>`).join('')}</tr>`).join('')}</tbody>
+          </table>
+        </div>
+        ${body.length > 5 ? `<div class="text-[10px] text-slate-400 mt-1 px-1">... dan ${body.length - 5} rekod lagi</div>` : ''}
+      </div>`;
+  }
+  preview.innerHTML = html || '<div class="text-xs text-slate-400">Tiada data untuk dipaparkan</div>';
+  setImportStatus('✓ Pratonton siap');
+}
+
+async function importFromSheets() {
+  if (!settings.gasUrl) { toast('Sila isi Apps Script URL dalam Tetapan', 'error'); return; }
+  const tabs = _getCheckedTabs();
+  if (!tabs.length) { toast('Pilih sekurang-kurangnya satu tab untuk diimport', 'error'); return; }
+  const mode = document.querySelector('input[name="import-mode"]:checked')?.value || 'replace';
+
+  if (mode === 'replace' && !confirm(`Mod "Ganti Semua": data tempatan bagi ${tabs.join(', ')} akan DIPADAM dan diganti dengan data Sheets. Teruskan?`)) return;
+
+  _showImportLog(true);
+  _logImport('info', `Memulakan import (mod: ${mode}) untuk: ${tabs.join(', ')}`);
+  setImportStatus('⏳ Mengimport...');
+
+  const results = await _fetchAllTabs(tabs);
+  let totalImported = 0;
+
+  for (const [tab, data] of Object.entries(results)) {
+    if (data.error) { _logImport('error', `${tab}: ${data.error}`); continue; }
+    const rows = data.rows || [];
+    if (rows.length < 2) { _logImport('warn', `${tab}: tiada data (hanya header)`); continue; }
+
+    const headers = rows[0].map(h => String(h).trim());
+    const body    = rows.slice(1);
+
+    // Log headers for admin diagnosis
+    _logImport('info', `${tab} headers: [${headers.join(', ')}]`);
+
+    try {
+      const count = _applyImport(tab, headers, body, mode);
+      _logImport('success', `${tab}: ${count} rekod diimport`);
+      totalImported += count;
+    } catch (e) {
+      _logImport('error', `${tab}: ${e.message}`);
+    }
+  }
+
+  saveData();
+  DB.setSingle('settings', settings);
+  loadData();
+
+  // Refresh current page display
+  const activePage = document.querySelector('.page.active')?.id?.replace('page-', '');
+  if (activePage) renderPage(activePage);
+  renderDashboard();
+
+  const schoolEl = document.getElementById('sidebar-school');
+  if (schoolEl) schoolEl.textContent = settings.sekolah || 'Nama Sekolah';
+  loadTetapan();
+
+  setImportStatus(`✓ ${totalImported} rekod diimport`);
+  toast(`Import selesai — ${totalImported} rekod berjaya diimport`, 'success');
+}
+
+function _applyImport(tab, headers, body, mode) {
+  // ── Normalise headers: lowercase + trim, handle BOM/whitespace ──────────────
+  const normHeaders = headers.map(h => String(h).trim().toLowerCase()
+    .replace(/^\uFEFF/, '')   // strip BOM
+    .replace(/\s+/g, ' '));   // collapse whitespace
+
+  // Case-insensitive column lookup with common aliases
+  const ALIASES = {
+    id:          ['id','no','bil'],
+    nama:        ['nama','name','nama penuh','full name'],
+    kelas:       ['kelas','class','tahun','year','darjah'],
+    jantina:     ['jantina','gender','sex'],
+    unitid:      ['unitid','unit id','unit_id'],
+    unitnama:    ['unitnama','unit nama','unit name','unit'],
+    unitbb:      ['unitbb','unit bb','badan beruniform','beruniform','unit badan beruniform'],
+    unitbbname:  ['unitbbname','unitbbnama','unit bb nama','badan beruniform nama'],
+    unitkp:      ['unitkp','unit kp','kelab persatuan','kelab & persatuan','unit kelab'],
+    unitkpname:  ['unitkpname','unitkpnama','unit kp nama','kelab persatuan nama'],
+    unitsp:      ['unitsp','unit sp','sukan permainan','sukan & permainan','unit sukan'],
+    unitspname:  ['unitspname','unitspnama','unit sp nama','sukan permainan nama'],
+    kategori:    ['kategori','category','jenis','type'],
+    guru:        ['guru','teacher','guru penasihat','guru penasihat 1','advisor','guru 1'],
+    guru2:       ['guru2','guru penasihat 2','second teacher','guru kedua','guru 2'],
+    tarikh:      ['tarikh','date','tarikhaktiviti'],
+    lokasi:      ['lokasi','location','tempat','venue'],
+    deskripsi:   ['deskripsi','description','keterangan','huraian'],
+    tags:        ['tags','tag','kata kunci'],
+    studentid:   ['studentid','student id','id murid','murid id','id'],
+    studentnama: ['studentnama','student nama','nama murid','murid'],
+    peringkat:   ['peringkat','level','stage'],
+    tahap:       ['tahap','pencapaian','achievement','tempat','placing'],
+    activityid:  ['activityid','activity id','id aktiviti'],
+    activitynama:['activitynama','activity nama','nama aktiviti','aktiviti'],
+    status:      ['status','kehadiran','hadir'],
+    key:         ['key','kunci'],
+    value:       ['value','nilai'],
+    imageindex:  ['imageindex','image index','index','bil'],
+    url:         ['url','link','pautan','gambar'],
+  };
+
+  const col = name => {
+    const key = name.toLowerCase();
+    const aliases = ALIASES[key] || [key];
+    for (const alias of aliases) {
+      const i = normHeaders.indexOf(alias);
+      if (i !== -1) return i;
+    }
+    return -1;
+  };
+
+  // Safe cell read — never returns undefined
+  const cell = (r, name, fallback = '') => {
+    const i = col(name);
+    if (i === -1) return fallback;
+    const v = r[i];
+    if (v === null || v === undefined) return fallback;
+    // Google Sheets sometimes returns Date objects
+    if (v instanceof Date) return v.toISOString().slice(0, 10);
+    return String(v).trim();
+  };
+
+  // Filter out truly empty rows (all cells empty)
+  const cleanBody = body.filter(r =>
+    r && r.some(c => c !== '' && c !== null && c !== undefined)
+  );
+
+  let count = 0;
+
+  if (tab === 'Settings') {
+    cleanBody.forEach(r => {
+      const k = cell(r, 'key');
+      const v = cell(r, 'value');
+      if (k && k !== 'lastSync' && k !== 'lastSaved') settings[k] = v;
+    });
+    return cleanBody.length;
+  }
+
+  if (tab === 'Students') {
+    const incoming = cleanBody.map(r => ({
+      id:      cell(r, 'id'),
+      nama:    cell(r, 'nama'),
+      kelas:   cell(r, 'kelas', '—'),
+      jantina: cell(r, 'jantina', 'L').toUpperCase().startsWith('P') ? 'P' : 'L',
+      unitBB:  _resolveUnitId(cell(r,'unitbb'), cell(r,'unitbbname'), 'Badan Beruniform'),
+      unitKP:  _resolveUnitId(cell(r,'unitkp'), cell(r,'unitkpname'), 'Kelab & Persatuan'),
+      unitSP:  _resolveUnitId(cell(r,'unitsp'), cell(r,'unitspname'), 'Sukan & Permainan'),
+      // backward compat
+      get unitId(){ return this.unitBB||this.unitKP||this.unitSP||_resolveUnitId(cell(r,'unitid'),cell(r,'unitnama')); }
+    })).filter(s => s.id && s.nama);
+    if (mode === 'replace') { students = incoming; }
+    else {
+      const ids = new Set(students.map(s => s.id));
+      incoming.forEach(s => {
+        if (!ids.has(s.id)) { students.push(s); ids.add(s.id); }
+        else { const i = students.findIndex(x => x.id === s.id); if(i>=0) students[i] = s; }
+      });
+    }
+    count = incoming.length;
+  }
+
+  else if (tab === 'Units') {
+    const incoming = cleanBody.map(r => ({
+      id:       cell(r, 'id') || uid(),
+      nama:     cell(r, 'nama'),
+      kategori: cell(r, 'kategori', 'Kelab & Persatuan'),
+      guru:     cell(r, 'guru'),
+      guru2:    cell(r, 'guru2'),
+    })).filter(u => u.nama);
+    if (mode === 'replace') { units = incoming; }
+    else {
+      const ids = new Set(units.map(u => u.id));
+      incoming.forEach(u => {
+        if (!ids.has(u.id)) { units.push(u); ids.add(u.id); }
+        else { const i = units.findIndex(x => x.id === u.id); if(i>=0) units[i] = u; }
+      });
+    }
+    count = incoming.length;
+  }
+
+  else if (tab === 'Activities') {
+    const incoming = cleanBody.map(r => ({
+      id:        cell(r, 'id') || uid(),
+      tarikh:    cell(r, 'tarikh'),
+      nama:      cell(r, 'nama'),
+      unitId:    _resolveUnitId(cell(r,'unitid'), cell(r,'unitnama')),
+      lokasi:    cell(r, 'lokasi'),
+      deskripsi: cell(r, 'deskripsi'),
+      tags:      cell(r, 'tags'),
+    })).filter(a => a.nama);
+    if (mode === 'replace') { activities = incoming; }
+    else {
+      const ids = new Set(activities.map(a => a.id));
+      incoming.forEach(a => {
+        if (!ids.has(a.id)) { activities.push(a); ids.add(a.id); }
+        else { const i = activities.findIndex(x => x.id === a.id); if(i>=0) activities[i] = a; }
+      });
+    }
+    count = incoming.length;
+  }
+
+  else if (tab === 'Participation') {
+    const incoming = cleanBody.map(r => ({
+      id:        cell(r, 'id') || uid(),
+      studentId: cell(r, 'studentid'),
+      nama:      cell(r, 'nama'),
+      peringkat: cell(r, 'peringkat', 'Sekolah'),
+      tarikh:    cell(r, 'tarikh'),
+      unitId:    _resolveUnitId(cell(r,'unitid'), cell(r,'unitnama')),
+    })).filter(p => p.studentId && p.nama);
+    if (mode === 'replace') { participations = incoming; }
+    else {
+      const ids = new Set(participations.map(p => p.id));
+      incoming.forEach(p => { if (!ids.has(p.id)) { participations.push(p); ids.add(p.id); } });
+    }
+    count = incoming.length;
+  }
+
+  else if (tab === 'Achievements') {
+    const incoming = cleanBody.map(r => ({
+      id:        cell(r, 'id') || uid(),
+      studentId: cell(r, 'studentid'),
+      nama:      cell(r, 'nama'),
+      tahap:     cell(r, 'tahap', 'Penyertaan'),
+      peringkat: cell(r, 'peringkat', 'Sekolah'),
+      tarikh:    cell(r, 'tarikh'),
+      unitId:    _resolveUnitId(cell(r,'unitid'), cell(r,'unitnama')),
+    })).filter(a => a.studentId && a.nama);
+    if (mode === 'replace') { achievements = incoming; }
+    else {
+      const ids = new Set(achievements.map(a => a.id));
+      incoming.forEach(a => { if (!ids.has(a.id)) { achievements.push(a); ids.add(a.id); } });
+    }
+    count = incoming.length;
+  }
+
+  else if (tab === 'Attendance') {
+    const incoming = cleanBody.map(r => ({
+      activityId: cell(r, 'activityid'),
+      studentId:  cell(r, 'studentid'),
+      status:     cell(r, 'status', 'hadir').toLowerCase(),
+    })).filter(a => a.activityId && a.studentId);
+    if (mode === 'replace') { attendance = incoming; }
+    else {
+      incoming.forEach(a => {
+        const i = attendance.findIndex(x => x.activityId===a.activityId && x.studentId===a.studentId);
+        if (i >= 0) attendance[i] = a; else attendance.push(a);
+      });
+    }
+    count = incoming.length;
+  }
+
+  else if (tab === 'Images') {
+    const grouped = {};
+    cleanBody.forEach(r => {
+      const aid = cell(r, 'activityid');
+      const url = cell(r, 'url');
+      if (!aid || !url) return;
+      if (!grouped[aid]) grouped[aid] = [];
+      if (grouped[aid].length < 4) grouped[aid].push(url);
+    });
+    const incoming = Object.entries(grouped).map(([activityId, imgs]) => ({ activityId, images: imgs }));
+    if (mode === 'replace') { images = incoming; }
+    else {
+      incoming.forEach(rec => {
+        const i = images.findIndex(x => x.activityId === rec.activityId);
+        if (i >= 0) images[i] = rec; else images.push(rec);
+      });
+    }
+    count = cleanBody.length;
+  }
+
+  return count;
+}
+
+// Resolve unitId: prefer direct ID, fallback to name match, optionally filter by category
+function _resolveUnitId(rawId, rawName, kat) {
+  const id   = String(rawId   || '').trim();
+  const name = String(rawName || '').trim();
+  const pool = kat ? units.filter(u => u.kategori === kat) : units;
+  if (id && pool.find(u => u.id === id)) return id;
+  if (name) { const u = pool.find(u => u.nama.toLowerCase() === name.toLowerCase()); if (u) return u.id; }
+  // If no kat filter, try any unit with matching id
+  if (id && !kat && units.find(u => u.id === id)) return id;
+  return id || '';
+}
+
+function _getCheckedTabs() {
+  return Array.from(document.querySelectorAll('.import-tab-chk:checked')).map(el => el.value);
+}
+
+async function _fetchAllTabs(tabs) {
+  const results = {};
+  await Promise.all(tabs.map(async tab => {
+    try {
+      const url = settings.gasUrl + '?tab=' + encodeURIComponent(tab);
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      results[tab] = { rows: json.data || [] };
+    } catch (e) {
+      results[tab] = { error: e.message };
+    }
+  }));
+  return results;
+}
+
+function _showImportLog(show) {
+  const el = document.getElementById('import-log');
+  const content = document.getElementById('import-log-content');
+  if (el) el.classList.toggle('hidden', !show);
+  if (show && content) content.innerHTML = '';
+}
+
+function _logImport(type, msg) {
+  const content = document.getElementById('import-log-content');
+  if (!content) return;
+  const colors = { success:'text-emerald-600', error:'text-red-500', warn:'text-amber-500', info:'text-blue-500' };
+  const icons  = { success:'✓', error:'✗', warn:'⚠', info:'ℹ' };
+  content.insertAdjacentHTML('beforeend',
+    `<div class="${colors[type]||'text-slate-500'}">[${icons[type]||'-'}] ${msg}</div>`);
+  content.parentElement.scrollTop = content.parentElement.scrollHeight;
+}
+
+function setImportStatus(msg) {
+  const el = document.getElementById('import-status');
+  if (el) el.textContent = msg;
+}
+
+// Show full GAS code in the pre block
+function showGasCode() {
+  const code = `// ═══════════════════════════════════════════════════════════
+// Sistem Kokurikulum Pro — Google Apps Script
+// Deploy sebagai: Web App | Execute as: Me | Access: Anyone
+// ═══════════════════════════════════════════════════════════
+var ROOT_FOLDER_ID = ''; // ID folder root Google Drive (optional)
+
+function doPost(e) {
+  try {
+    var data = JSON.parse(e.postData.contents);
+    if (data.action === 'uploadImage') return uploadImageToDrive(data);
+    if (data.action === 'sync')        return syncSheet(data);
+    return jsonOut({ status:'error', error:'Unknown action' });
+  } catch(err) { return jsonOut({ status:'error', error:err.message }); }
+}
+
+function doGet(e) {
+  try {
+    var ss    = SpreadsheetApp.getActiveSpreadsheet();
+    var tab   = e.parameter.tab;
+    var sheet = ss.getSheetByName(tab);
+    if (!sheet) return jsonOut({ data:[] });
+    var vals  = sheet.getDataRange().getValues();
+    return jsonOut({ data: vals });
+  } catch(err) { return jsonOut({ data:[], error:err.message }); }
+}
+
+function syncSheet(data) {
+  var ss    = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(data.tab) || ss.insertSheet(data.tab);
+  sheet.clearContents();
+  if (data.rows && data.rows.length > 0) {
+    sheet.getRange(1,1,data.rows.length,data.rows[0].length).setValues(data.rows);
+    sheet.getRange(1,1,1,data.rows[0].length)
+         .setBackground('#0f172a').setFontColor('#ffffff').setFontWeight('bold');
+    sheet.setFrozenRows(1);
+  }
+  return jsonOut({ status:'ok', tab:data.tab });
+}
+
+function uploadImageToDrive(data) {
+  var rootId   = data.driveRootId || ROOT_FOLDER_ID;
+  var root     = rootId ? DriveApp.getFolderById(rootId) : DriveApp.getRootFolder();
+  var fYear    = getOrCreateFolder(root,  data.tahun    || String(new Date().getFullYear()));
+  var fKat     = getOrCreateFolder(fYear, data.kategori || 'Lain-lain');
+  var fUnit    = getOrCreateFolder(fKat,  sanitize(data.unitName     || 'Unit'));
+  var fAct     = getOrCreateFolder(fUnit, sanitize(data.activityName || data.activityId || 'Aktiviti'));
+  var mime     = data.mimeType || 'image/jpeg';
+  var fname    = data.filename || (data.activityId + '_' + Date.now() + '.jpg');
+  var file     = fAct.createFile(Utilities.newBlob(Utilities.base64Decode(data.base64), mime, fname));
+  file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  return jsonOut({ status:'ok', url:'https://drive.google.com/uc?export=view&id='+file.getId(), driveId:file.getId() });
+}
+
+function getOrCreateFolder(parent, name) {
+  var it = parent.getFoldersByName(name);
+  return it.hasNext() ? it.next() : parent.createFolder(name);
+}
+function sanitize(s) { return s.replace(/[\\/:\\*?"<>|]/g,'_').trim(); }
+function jsonOut(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj))
+         .setMimeType(ContentService.MimeType.JSON);
+}`;
+
+  const pre = document.getElementById('gas-code-block');
+  if (pre) { pre.textContent = code; pre.style.maxHeight = '400px'; }
+  try { navigator.clipboard.writeText(code).then(() => toast('Kod GAS disalin ke clipboard ✓', 'success')); }
+  catch(e) { toast('Kod GAS dipaparkan — salin secara manual', ''); }
+}
+
+// ─── GAS POST helper (shared by sync + image upload) ─────────────────────────
+async function gasPost(payload) {
+  const res = await fetch(settings.gasUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(payload)
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+
+// CSV
+function csvDrag(e,on){e.preventDefault();document.getElementById('csv-drop').classList.toggle('drag-over',on);}
+function csvDropped(e){e.preventDefault();csvDrag(e,false);const f=e.dataTransfer.files[0];if(f)readCSV(f);}
+function csvSelected(){const f=document.getElementById('csv-file').files[0];if(f)readCSV(f);}
+function readCSV(file){const r=new FileReader();r.onload=e=>{const lines=e.target.result.split('\n').filter(l=>l.trim());if(!lines.length){toast('Fail CSV kosong','error');return;}csvHeaders=lines[0].split(',').map(h=>h.trim().replace(/"/g,''));csvData=lines.slice(1).map(l=>{const vals=l.split(',').map(v=>v.trim().replace(/"/g,''));const obj={};csvHeaders.forEach((h,i)=>obj[h]=vals[i]||'');return obj;});showCSVMapping();};r.readAsText(file);}
+function showCSVMapping(){
+  const reqFields=[
+    {key:'id',label:'ID Murid'},{key:'nama',label:'Nama'},{key:'kelas',label:'Kelas'},{key:'jantina',label:'Jantina'},
+    {key:'unitBB',label:'🪖 Badan Beruniform (pilihan)'},{key:'unitKP',label:'📚 Kelab & Persatuan (pilihan)'},{key:'unitSP',label:'⚽ Sukan & Permainan (pilihan)'},
+  ];
+  const grid=document.getElementById('csv-map-grid');
+  grid.innerHTML=reqFields.map(f=>{const auto=csvHeaders.find(h=>h.toLowerCase().includes(f.key.toLowerCase())||f.key.toLowerCase().includes(h.toLowerCase()));return`<div><label class="block text-xs font-semibold text-slate-600 mb-1">${f.label}</label><select id="map-${f.key}" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-blue-400 bg-slate-50"><option value="">—</option>${csvHeaders.map(h=>`<option value="${h}" ${h===auto?'selected':''}>${h}</option>`).join('')}</select></div>`;}).join('');
+  const prev=document.getElementById('csv-preview-wrap');
+  prev.innerHTML=`<div class="mt-3 text-xs font-semibold text-slate-600 mb-2">Pratonton (${Math.min(csvData.length,5)} daripada ${csvData.length} rekod)</div><div class="overflow-x-auto rounded-xl ring-1 ring-slate-200 max-h-52 overflow-y-auto"><table class="w-full text-xs"><thead><tr class="bg-slate-800">${csvHeaders.map(h=>`<th class="px-3 py-2 text-left text-white font-semibold">${h}</th>`).join('')}</tr></thead><tbody class="divide-y divide-slate-100">${csvData.slice(0,5).map(row=>`<tr>${csvHeaders.map(h=>`<td class="px-3 py-2 text-slate-600">${row[h]||''}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+  document.getElementById('csv-mapping').classList.remove('hidden');
+}
+function importCSV(){
+  const map={id:document.getElementById('map-id').value,nama:document.getElementById('map-nama').value,kelas:document.getElementById('map-kelas').value,jantina:document.getElementById('map-jantina').value,unitBB:document.getElementById('map-unitBB').value,unitKP:document.getElementById('map-unitKP').value,unitSP:document.getElementById('map-unitSP').value};
+  if(!map.id||!map.nama){toast('Peta sekurang-kurangnya ID dan Nama','error');return;}
+  const resolveUnit=(colName,kat)=>{if(!map[colName])return'';const name=csvData[0]?.[map[colName]]?.trim();const u=units.find(u=>u.kategori===kat&&u.nama.toLowerCase()===name?.toLowerCase());return u?u.id:'';};
+  let added=0,skipped=0;
+  csvData.forEach(row=>{
+    const id=row[map.id]?.trim();const nama=row[map.nama]?.trim();
+    if(!id||!nama||students.find(s=>s.id===id)){skipped++;return;}
+    const kelas=map.kelas?row[map.kelas]?.trim()||'':'—';
+    let jantina='L';if(map.jantina){const j=row[map.jantina]?.trim().toUpperCase();jantina=j==='P'||j==='PEREMPUAN'?'P':'L';}
+    const findUnit=(colKey,kat)=>{if(!map[colKey])return'';const n=row[map[colKey]]?.trim();if(!n)return'';const u=units.find(u=>u.kategori===kat&&u.nama.toLowerCase()===n.toLowerCase());return u?u.id:'';};
+    const unitBB=findUnit('unitBB','Badan Beruniform');
+    const unitKP=findUnit('unitKP','Kelab & Persatuan');
+    const unitSP=findUnit('unitSP','Sukan & Permainan');
+    const unitId=unitBB||unitKP||unitSP||'';
+    students.push({id,nama,kelas,jantina,unitId,unitBB,unitKP,unitSP});added++;
+  });
+  saveData();toast(`${added} murid diimport, ${skipped} dilangkau`,'success');resetCSV();nav('murid',null);
+}
+function resetCSV(){document.getElementById('csv-mapping').classList.add('hidden');document.getElementById('csv-file').value='';csvData=[];csvHeaders=[];}
+
+// MODAL HELPERS
+function openModal(id){
+  document.getElementById(id).classList.add('open');
+  if(id==='modal-tambah-murid'){document.getElementById('murid-edit-id').value='';['murid-id','murid-nama','murid-kelas'].forEach(f=>document.getElementById(f).value='');document.getElementById('murid-jantina').value='L';populateUnitSelectByKat('murid-unit-bb','Badan Beruniform');populateUnitSelectByKat('murid-unit-kp','Kelab & Persatuan');populateUnitSelectByKat('murid-unit-sp','Sukan & Permainan');}
+  if(id==='modal-tambah-unit'){document.getElementById('unit-edit-id').value='';['unit-nama','unit-guru','unit-guru2'].forEach(f=>document.getElementById(f).value='');}
+  if(id==='modal-tambah-aktiviti'){document.getElementById('aktiviti-edit-id').value='';['aktiviti-nama','aktiviti-lokasi','aktiviti-deskripsi','aktiviti-tag'].forEach(f=>document.getElementById(f).value='');document.getElementById('aktiviti-tarikh').value=new Date().toISOString().slice(0,10);populateUnitSelect('aktiviti-unit');}
+  if(id==='modal-tambah-penyertaan'){populateMuridSelect('penyertaan-murid');populateUnitSelect('penyertaan-unit');document.getElementById('penyertaan-nama').value='';document.getElementById('penyertaan-tarikh').value=new Date().toISOString().slice(0,10);}
+  if(id==='modal-tambah-pencapaian'){populateMuridSelect('pencapaian-murid');populateUnitSelect('pencapaian-unit');document.getElementById('pencapaian-nama').value='';document.getElementById('pencapaian-tarikh').value=new Date().toISOString().slice(0,10);}
+}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+// ─── HELPER: Dapatkan semua unit ID murid (BB + KP + SP) ─────────────────────
+function getStudentUnitIds(s) {
+  const ids = [];
+  if (s.unitBB) ids.push(s.unitBB);
+  if (s.unitKP) ids.push(s.unitKP);
+  if (s.unitSP) ids.push(s.unitSP);
+  // Backward compat: old records have only unitId
+  if (!ids.length && s.unitId) ids.push(s.unitId);
+  return ids;
+}
+
+function populateUnitSelect(selId,selected=''){document.getElementById(selId).innerHTML='<option value="">-- Pilih Unit --</option>'+units.map(u=>`<option value="${u.id}" ${u.id===selected?'selected':''}>${u.nama}</option>`).join('');}
+
+function populateUnitSelectByKat(selId, kat, selected='') {
+  const el = document.getElementById(selId);
+  if (!el) return;
+  const filtered = units.filter(u => u.kategori === kat);
+  el.innerHTML = '<option value="">— Tiada / Belum ditetapkan —</option>' +
+    filtered.map(u => `<option value="${u.id}" ${u.id===selected?'selected':''}>${u.nama}</option>`).join('');
+}
+function populateMuridSelect(selId,selected=''){document.getElementById(selId).innerHTML='<option value="">-- Pilih Murid --</option>'+[...students].sort((a,b)=>a.nama.localeCompare(b.nama)).map(s=>`<option value="${s.id}" ${s.id===selected?'selected':''}>${s.nama} (${s.kelas})</option>`).join('');}
+function populateSelects(){
+  const actOpts='<option value="">-- Pilih Aktiviti --</option>'+[...activities].sort((a,b)=>new Date(b.tarikh)-new Date(a.tarikh)).map(a=>`<option value="${a.id}">${a.tarikh} — ${a.nama}</option>`).join('');
+  const s1=document.getElementById('sel-aktiviti-hadir');const s2=document.getElementById('sel-aktiviti-galeri');
+  if(s1)s1.innerHTML=actOpts;if(s2)s2.innerHTML=actOpts;
+  const cu=document.getElementById('cari-unit');if(cu)cu.innerHTML='<option value="">Semua Unit</option>'+units.map(u=>`<option value="${u.id}">${u.nama}</option>`).join('');
+}
+
+// IMAGE VIEWER
+function viewImg(src){document.getElementById('viewer-img').src=src;document.getElementById('img-viewer').classList.add('open');}
+function closeViewer(){document.getElementById('img-viewer').classList.remove('open');}
+
+// TOAST
+function toast(msg,type=''){
+  const t=document.getElementById('toast');const ic=document.getElementById('toast-icon');const m=document.getElementById('toast-msg');
+  m.textContent=msg;
+  const cfg={success:{bg:'bg-emerald-600',icon:'<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'},error:{bg:'bg-red-600',icon:'<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/></svg>'},'': {bg:'bg-slate-800',icon:'<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"/></svg>'}};
+  const c=cfg[type]||cfg[''];
+  t.className=`toast fixed bottom-6 right-6 z-[999] flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl text-sm font-medium text-white min-w-[200px] ${c.bg}`;
+  ic.innerHTML=c.icon;
+  t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),3500);
+}
+
+// HELPERS
+function badge(text,color='slate'){
+  const map={blue:'bg-blue-50 text-blue-700',emerald:'bg-emerald-50 text-emerald-700',amber:'bg-amber-50 text-amber-700',violet:'bg-violet-50 text-violet-700',red:'bg-red-50 text-red-700',slate:'bg-slate-100 text-slate-600'};
+  return`<span class="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-full ${map[color]||map.slate}">${text}</span>`;
+}
+function emptyState(icon,msg){return`<div class="text-center py-12 px-4"><div class="text-4xl mb-3">${icon}</div><p class="text-sm text-slate-400 font-medium">${msg}</p></div>`;}
+
+// SEED DEMO
+function seedDemoData(){
+  if(units.length)return;
+  units=[{id:'U1',nama:'Kelab Bahasa Melayu',kategori:'Kelab & Persatuan',guru:'Cik Asmah',guru2:'En. Hasrul'},{id:'U2',nama:'Kelab Sains & Matematik',kategori:'Kelab & Persatuan',guru:'En. Hafiz',guru2:''},{id:'U3',nama:'Bola Sepak',kategori:'Sukan & Permainan',guru:'En. Razif',guru2:'En. Farid'},{id:'U4',nama:'Badminton',kategori:'Sukan & Permainan',guru:'Cik Lina',guru2:''},{id:'U5',nama:'Kadet Remaja Sekolah',kategori:'Badan Beruniform',guru:'En. Azlan',guru2:'Cik Suraya'},{id:'U6',nama:'Pengakap',kategori:'Badan Beruniform',guru:'Cik Nora',guru2:''}];
+  students=[
+    {id:'M001',nama:'Ahmad Faris bin Zulkifli',kelas:'Tahun 6 Maju',jantina:'L',unitBB:'U5',unitKP:'U1',unitSP:'U3',unitId:'U5'},
+    {id:'M002',nama:'Nurul Ain binti Hassan',kelas:'Tahun 5 Cemerlang',jantina:'P',unitBB:'U6',unitKP:'U1',unitSP:'U4',unitId:'U6'},
+    {id:'M003',nama:'Ravi Kumar a/l Suresh',kelas:'Tahun 6 Maju',jantina:'L',unitBB:'U5',unitKP:'U2',unitSP:'U3',unitId:'U5'},
+    {id:'M004',nama:'Siti Aisyah binti Malik',kelas:'Tahun 4 Bestari',jantina:'P',unitBB:'U6',unitKP:'U2',unitSP:'U4',unitId:'U6'},
+    {id:'M005',nama:'Chong Wei Ming',kelas:'Tahun 5 Cemerlang',jantina:'L',unitBB:'U5',unitKP:'U1',unitSP:'U4',unitId:'U5'},
+    {id:'M006',nama:'Fatimah binti Othman',kelas:'Tahun 6 Maju',jantina:'P',unitBB:'U6',unitKP:'U2',unitSP:'U3',unitId:'U6'},
+    {id:'M007',nama:'Muhd Izzat bin Ismail',kelas:'Tahun 4 Bestari',jantina:'L',unitBB:'U5',unitKP:'U1',unitSP:'U3',unitId:'U5'},
+    {id:'M008',nama:'Priya a/p Krishnan',kelas:'Tahun 5 Cemerlang',jantina:'P',unitBB:'U6',unitKP:'U2',unitSP:'U4',unitId:'U6'},
+  ];
+  activities=[{id:'A1',tarikh:'2026-02-15',nama:'Pertandingan Pidato BM Peringkat Sekolah',unitId:'U1',lokasi:'Dewan Sekolah',deskripsi:'Pertandingan pidato antara murid tahun 4-6',tags:'pidato,bahasa melayu,pertandingan'},{id:'A2',tarikh:'2026-03-20',nama:'Perlawanan Bola Sepak Antara Kelas',unitId:'U3',lokasi:'Padang Sekolah',deskripsi:'Perlawanan akhir liga bola sepak',tags:'bola sepak,sukan,pertandingan'},{id:'A3',tarikh:'2026-04-10',nama:'Jamboree Pengakap Daerah',unitId:'U6',lokasi:'Hutan Rekreasi',deskripsi:'Perkemahan dan aktiviti kepengakap',tags:'pengakap,perkemahan,daerah'}];
+  participations=[{id:'P1',studentId:'M002',nama:'Pidato BM Peringkat Daerah',peringkat:'Daerah',tarikh:'2026-03-01',unitId:'U1'},{id:'P2',studentId:'M005',nama:'Kejohanan Badminton MSSD',peringkat:'Daerah',tarikh:'2026-03-15',unitId:'U4'},{id:'P3',studentId:'M001',nama:'Liga Bola Sepak Sekolah',peringkat:'Sekolah',tarikh:'2026-02-20',unitId:'U3'},{id:'P4',studentId:'M003',nama:'Pertandingan Kawad Kaki',peringkat:'Negeri',tarikh:'2026-04-20',unitId:'U5'}];
+  achievements=[{id:'C1',studentId:'M002',nama:'Pidato BM Peringkat Daerah',tahap:'Johan',peringkat:'Daerah',tarikh:'2026-03-01',unitId:'U1'},{id:'C2',studentId:'M005',nama:'Kejohanan Badminton MSSD',tahap:'Tempat Ketiga',peringkat:'Daerah',tarikh:'2026-03-15',unitId:'U4'},{id:'C3',studentId:'M001',nama:'Liga Bola Sepak Sekolah',tahap:'Johan',peringkat:'Sekolah',tarikh:'2026-02-20',unitId:'U3'},{id:'C4',studentId:'M003',nama:'Pertandingan Kawad Kaki',tahap:'Tempat Kedua',peringkat:'Negeri',tarikh:'2026-04-20',unitId:'U5'},{id:'C5',studentId:'M004',nama:'Kejohanan Badminton MSSD',tahap:'Penyertaan',peringkat:'Daerah',tarikh:'2026-03-15',unitId:'U4'}];
+  saveData();
+}
+
+// INIT
+function init(){
+  const d=new Date();document.getElementById('current-date').textContent=d.toLocaleDateString('ms-MY',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  loadData();seedDemoData();loadData();
+  const sb=document.getElementById('sidebar-school');if(sb)sb.textContent=settings.sekolah||'Nama Sekolah';
+  renderDashboard();
+  document.querySelectorAll('.modal-overlay').forEach(m=>{m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');});});
+}
+
+init();
+</script>
+</body>
+</html>
