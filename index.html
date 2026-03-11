@@ -971,70 +971,16 @@ M003,Ravi Kumar,Tahun 6 Hijau,L,Kadet Remaja Sekolah</pre>
   <img id="viewer-img" src="" alt="" class="max-w-[90vw] max-h-[90vh] rounded-xl object-contain">
 </div>
 
-<!-- ══════════ MODAL PERSEDIAAN AWAL (First Run) ══════════ -->
-<div id="modal-firstrun" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[999] flex items-center justify-center p-4" style="display:none!important">
-  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md animate-fade-up">
-    <!-- Header -->
-    <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-t-2xl px-6 pt-6 pb-5 text-center">
-      <img src="https://i.postimg.cc/G23tcFnW/Logo-SK-Adin.png" alt="Logo" class="w-14 h-14 object-contain mx-auto mb-3" onerror="this.style.display='none'">
-      <h2 class="text-white font-serif font-semibold text-lg">Kokurikulum Pro</h2>
-      <p class="text-slate-400 text-xs mt-1">Persediaan Awal — Peranti Baharu</p>
+<!-- Loading overlay (first-run auto-import) -->
+<div id="firstrun-overlay" class="hidden fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[999] flex items-center justify-center">
+  <div class="bg-white rounded-2xl px-8 py-7 shadow-2xl flex flex-col items-center gap-4 max-w-xs w-full mx-4">
+    <img src="https://i.postimg.cc/G23tcFnW/Logo-SK-Adin.png" alt="Logo" class="w-12 h-12 object-contain" onerror="this.style.display='none'">
+    <div class="text-center">
+      <div class="text-sm font-semibold text-slate-800">Memuatkan data...</div>
+      <div class="text-xs text-slate-400 mt-1">Menyambung ke Google Sheets</div>
     </div>
-
-    <!-- Body -->
-    <div class="px-6 py-5 space-y-4">
-      <div class="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex gap-2.5">
-        <svg class="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>
-        <p class="text-xs text-amber-700">Tiada data ditemui pada peranti ini. Sila pilih cara untuk meneruskan.</p>
-      </div>
-
-      <div id="fr-step-choose" class="space-y-3">
-        <button onclick="frChoose('sheets')" class="w-full flex items-center gap-3 p-4 rounded-xl ring-1 ring-slate-200 hover:ring-blue-400 hover:bg-blue-50/50 transition-all text-left group">
-          <div class="w-9 h-9 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-            <svg class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
-          </div>
-          <div>
-            <div class="text-sm font-semibold text-slate-800">Import dari Google Sheets</div>
-            <div class="text-xs text-slate-400 mt-0.5">Muat semua data dari Sheets sedia ada</div>
-          </div>
-        </button>
-        <button onclick="frChoose('empty')" class="w-full flex items-center gap-3 p-4 rounded-xl ring-1 ring-slate-200 hover:ring-slate-400 hover:bg-slate-50 transition-all text-left">
-          <div class="w-9 h-9 bg-slate-100 rounded-lg flex items-center justify-center flex-shrink-0">
-            <svg class="w-5 h-5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-          </div>
-          <div>
-            <div class="text-sm font-semibold text-slate-700">Mulakan Sistem Baharu</div>
-            <div class="text-xs text-slate-400 mt-0.5">Sistem kosong, masukkan data secara manual</div>
-          </div>
-        </button>
-        <button onclick="frChoose('demo')" class="w-full flex items-center gap-3 p-4 rounded-xl ring-1 ring-slate-200 hover:ring-emerald-400 hover:bg-emerald-50/50 transition-all text-left">
-          <div class="w-9 h-9 bg-emerald-50 rounded-lg flex items-center justify-center flex-shrink-0">
-            <svg class="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23-.693L5 14.5m14.8.8l1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0112 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5"/></svg>
-          </div>
-          <div>
-            <div class="text-sm font-semibold text-slate-700">Guna Data Demo</div>
-            <div class="text-xs text-slate-400 mt-0.5">Muatkan data contoh untuk tujuan ujian</div>
-          </div>
-        </button>
-      </div>
-
-      <!-- Step: Enter GAS URL -->
-      <div id="fr-step-url" class="hidden space-y-3">
-        <button onclick="frBack()" class="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-600 transition-colors">
-          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/></svg> Kembali
-        </button>
-        <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-1.5">Google Apps Script URL</label>
-          <input id="fr-gas-url" placeholder="https://script.google.com/macros/s/..." class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all">
-        </div>
-        <div id="fr-import-log" class="hidden bg-slate-50 rounded-xl px-4 py-3 max-h-32 overflow-y-auto">
-          <div id="fr-import-log-content" class="space-y-0.5 text-xs font-mono"></div>
-        </div>
-        <button id="fr-import-btn" onclick="frImport()" class="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-3 rounded-xl transition-colors">
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
-          Import Semua Data dari Sheets
-        </button>
-      </div>
+    <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+      <div class="h-full bg-blue-500 rounded-full animate-pulse" style="width:70%"></div>
     </div>
   </div>
 </div>
@@ -1063,7 +1009,7 @@ function loadData(){
   students=DB.get('students');units=DB.get('units');activities=DB.get('activities');
   attendance=DB.get('attendance');participations=DB.get('participations');
   achievements=DB.get('achievements');images=DB.get('images');
-  settings=DB.getSingle('settings',{gasUrl:'',driveId:'',sekolah:'',daerah:'',pengetua:'',guruKoku:''});
+  settings=DB.getSingle('settings',{gasUrl:'https://script.google.com/macros/s/AKfycbxk4BuTn0IK4j8RYiIKbFk_EaG8AroTrejXoloTP8uRkWgvF2MGjDyTv9c2TSxm_d8tlQ/exec',driveId:'',sekolah:'',daerah:'',pengetua:'',guruKoku:''});
 }
 function saveData(){
   DB.set('students',students);DB.set('units',units);DB.set('activities',activities);
@@ -2502,110 +2448,50 @@ async function quickImportFromSheets() {
 // ─── FIRST RUN SETUP ─────────────────────────────────────────────────────────
 
 function _isFirstRun() {
-  // True if ALL data stores are empty (brand new device / cleared browser)
   return !localStorage.getItem('koku_units') &&
          !localStorage.getItem('koku_students') &&
          !localStorage.getItem('koku_settings');
 }
 
-function _showFirstRun() {
-  const el = document.getElementById('modal-firstrun');
-  if (el) { el.style.cssText = ''; el.classList.add('flex'); }
-}
+async function _autoImportOnFirstRun() {
+  const gasUrl = settings.gasUrl;
+  if (!gasUrl) return;
 
-function _hideFirstRun() {
-  const el = document.getElementById('modal-firstrun');
-  if (el) { el.style.display = 'none'; el.classList.remove('flex'); }
-}
-
-function frChoose(option) {
-  if (option === 'sheets') {
-    document.getElementById('fr-step-choose').classList.add('hidden');
-    document.getElementById('fr-step-url').classList.remove('hidden');
-  } else if (option === 'demo') {
-    seedDemoData();
-    loadData();
-    renderDashboard();
-    _hideFirstRun();
-    toast('Data demo dimuatkan', 'success');
-  } else {
-    // empty system
-    _hideFirstRun();
-    toast('Sistem sedia — mula masukkan data anda', 'success');
-  }
-}
-
-function frBack() {
-  document.getElementById('fr-step-url').classList.add('hidden');
-  document.getElementById('fr-step-choose').classList.remove('hidden');
-  document.getElementById('fr-import-log').classList.add('hidden');
-}
-
-async function frImport() {
-  const gasUrl = document.getElementById('fr-gas-url').value.trim();
-  if (!gasUrl) { document.getElementById('fr-gas-url').focus(); return; }
-
-  // Save the URL to settings first
-  settings.gasUrl = gasUrl;
-  DB.setSingle('settings', settings);
-
-  const btn = document.getElementById('fr-import-btn');
-  btn.disabled = true;
-  btn.textContent = '⏳ Mengimport...';
-
-  const log = document.getElementById('fr-import-log');
-  const logContent = document.getElementById('fr-import-log-content');
-  log.classList.remove('hidden');
-  logContent.innerHTML = '';
-
-  const addLog = (type, msg) => {
-    const colors = { ok:'text-emerald-600', err:'text-red-500', info:'text-blue-500' };
-    logContent.insertAdjacentHTML('beforeend',
-      `<div class="${colors[type]||'text-slate-500'}">${msg}</div>`);
-    log.scrollTop = log.scrollHeight;
-  };
+  // Show a non-blocking loading overlay
+  const overlay = document.getElementById('firstrun-overlay');
+  if (overlay) overlay.classList.remove('hidden');
 
   const ALL_TABS = ['Settings','Units','Students','Activities','Participation','Achievements','Attendance','Images'];
   let totalImported = 0;
 
   for (const tab of ALL_TABS) {
     try {
-      addLog('info', `⏳ ${tab}...`);
       const res = await fetch(gasUrl + '?tab=' + encodeURIComponent(tab));
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (!res.ok) continue;
       const json = await res.json();
       const rows = json.data || [];
-      if (rows.length < 2) { addLog('info', `⚠ ${tab}: tiada rekod`); continue; }
+      if (rows.length < 2) continue;
       const headers = rows[0].map(h => String(h).trim());
       const body    = rows.slice(1);
-      const count   = _applyImport(tab, headers, body, 'replace');
-      totalImported += count;
-      addLog('ok', `✓ ${tab}: ${count} rekod`);
-    } catch(e) {
-      addLog('err', `✗ ${tab}: ${e.message}`);
-    }
+      totalImported += _applyImport(tab, headers, body, 'replace');
+    } catch(e) { /* silent — will just start with empty system */ }
   }
 
   saveData();
   DB.setSingle('settings', settings);
   loadData();
 
-  btn.disabled = false;
-  btn.textContent = 'Import Semua Data dari Sheets';
+  if (overlay) overlay.classList.add('hidden');
+
+  renderDashboard();
+  const sb = document.getElementById('sidebar-school');
+  if (sb) sb.textContent = settings.sekolah || 'Nama Sekolah';
+  loadTetapan();
 
   if (totalImported > 0) {
-    addLog('ok', `✅ Selesai — ${totalImported} rekod diimport`);
-    setTimeout(() => {
-      _hideFirstRun();
-      renderDashboard();
-      const sb = document.getElementById('sidebar-school');
-      if (sb) sb.textContent = settings.sekolah || 'Nama Sekolah';
-      loadTetapan();
-      toast(`Import berjaya — ${totalImported} rekod dimuatkan`, 'success');
-    }, 1200);
-  } else {
-    addLog('err', 'Tiada data berjaya diimport. Semak URL dan cuba lagi.');
+    toast(`Data dimuatkan dari Sheets — ${totalImported} rekod`, 'success');
   }
+  // If nothing imported (Sheets empty / unreachable), system starts empty — no error shown
 }
 
 // ─── DEMO DATA (manual only) ──────────────────────────────────────────────────
@@ -2644,9 +2530,9 @@ function init(){
     m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
   });
 
-  // Show first-run modal if no data at all on this device
+  // Auto-import from Sheets silently on first run (new device)
   if (_isFirstRun()) {
-    setTimeout(_showFirstRun, 400); // slight delay for UI to settle
+    _autoImportOnFirstRun();
   }
 }
 
