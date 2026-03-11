@@ -295,7 +295,7 @@ tailwind.config = {
       <div class="bg-white rounded-2xl ring-1 ring-slate-200 overflow-hidden">
         <div class="px-5 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3">
           <h2 class="font-serif text-slate-800 font-semibold">Senarai Murid</h2>
-          <button onclick="openModal('modal-tambah-murid')" class="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3.5 py-2 rounded-lg transition-colors">
+          <button onclick="document.getElementById('murid-edit-id').value='';openModal('modal-tambah-murid')" class="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3.5 py-2 rounded-lg transition-colors">
             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg> Tambah Murid
           </button>
         </div>
@@ -1014,7 +1014,7 @@ function loadData(){
   students=DB.get('students');units=DB.get('units');activities=DB.get('activities');
   attendance=DB.get('attendance');participations=DB.get('participations');
   achievements=DB.get('achievements');images=DB.get('images');
-  settings=DB.getSingle('settings',{gasUrl:'https://script.google.com/macros/s/AKfycbxk4BuTn0IK4j8RYiIKbFk_EaG8AroTrejXoloTP8uRkWgvF2MGjDyTv9c2TSxm_d8tlQ/exec',driveId:'',sekolah:'',daerah:'',pengetua:'',guruKoku:''});
+  settings=DB.getSingle('settings',{gasUrl:'https://script.google.com/macros/s/AKfycbxk4BuTn0IK4j8RYiIKbFk_EaG8AroTrejXoloTP8uRkWgvF2MGjDyTv9c2TSxm_d8tlQ/exec',driveId:'1PiLRDNLB18cQcBnu-TLjYghR3BrqjeO-',sekolah:'',daerah:'',pengetua:'',guruKoku:''});
 }
 function saveData(){
   DB.set('students',students);DB.set('units',units);DB.set('activities',activities);
@@ -1142,15 +1142,19 @@ function renderMurid(q=''){
 function filterMurid(){renderMurid();}
 function editMurid(id){
   const s=students.find(x=>x.id===id);if(!s)return;
+  // Set edit ID dulu — supaya openModal tahu ini mod EDIT, bukan TAMBAH BARU
   document.getElementById('murid-edit-id').value=s.id;
+  // Buka modal
+  openModal('modal-tambah-murid');
+  // Isi semua maklumat murid selepas modal terbuka
   document.getElementById('murid-id').value=s.id;
   document.getElementById('murid-nama').value=s.nama;
   document.getElementById('murid-kelas').value=s.kelas;
   document.getElementById('murid-jantina').value=s.jantina;
+  // Isi dropdown unit — data tersedia dari rekod murid sedia ada
   populateUnitSelectByKat('murid-unit-bb','Badan Beruniform', s.unitBB||s.unitId||'');
   populateUnitSelectByKat('murid-unit-kp','Kelab & Persatuan', s.unitKP||'');
   populateUnitSelectByKat('murid-unit-sp','Sukan & Permainan', s.unitSP||'');
-  openModal('modal-tambah-murid');
 }
 function saveMurid(){
   const eid=document.getElementById('murid-edit-id').value;
@@ -1357,18 +1361,33 @@ function renderGaleri() {
     return;
   }
 
-  // Bug fix #3: Use data-index + event delegation — no inline base64 in onclick
+  const hasPending = imgs.some(u => u.startsWith('pending:'));
+
   gal.innerHTML = `
-    <div class="flex items-center justify-between mb-3">
+    <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
       <span class="text-xs font-semibold text-slate-500">${imgs.length} daripada 4 gambar</span>
-      <span class="text-[10px] text-slate-400">${settings.gasUrl ? '☁️ Disimpan ke Google Drive' : '💾 Disimpan secara tempatan'}</span>
+      <div class="flex items-center gap-2">
+        ${hasPending ? `<button onclick="retryPendingUploads()" class="flex items-center gap-1 text-[10px] font-semibold bg-amber-500 hover:bg-amber-600 text-white px-2.5 py-1 rounded-lg transition-colors">
+          <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+          Retry Upload</button>` : ''}
+      </div>
     </div>
     <div id="galeri-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-      ${imgs.map((img, i) => `
+      ${imgs.map((imgUrl, i) => {
+        const isPending = imgUrl.startsWith('pending:');
+        const isLocal   = imgUrl.startsWith('data:');
+        const displaySrc = isPending ? imgUrl.slice('pending:'.length) : imgUrl;
+        const badge = isPending
+          ? `<span class="absolute top-1.5 left-1.5 text-[9px] font-bold bg-amber-500 text-white px-1.5 py-0.5 rounded-md">⚠ Pending</span>`
+          : isLocal
+            ? `<span class="absolute top-1.5 left-1.5 text-[9px] font-bold bg-slate-600 text-white px-1.5 py-0.5 rounded-md">💾 Tempatan</span>`
+            : `<span class="absolute top-1.5 left-1.5 text-[9px] font-bold bg-emerald-500 text-white px-1.5 py-0.5 rounded-md">☁ Drive</span>`;
+        return `
         <div class="relative group rounded-xl overflow-hidden aspect-[4/3] bg-slate-100 cursor-pointer" data-img-index="${i}">
-          <img src="${img}"
+          <img src="${displaySrc}"
                class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-               onerror="this.closest('[data-img-index]').classList.add('hidden')">
+               onerror="this.closest('[data-img-index]').classList.add('img-error');this.style.display='none'">
+          ${badge}
           <div class="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/40 transition-all flex items-center justify-center gap-2">
             <button data-view="${i}"
                     class="opacity-0 group-hover:opacity-100 bg-white text-slate-700 text-[10px] font-bold px-2.5 py-1 rounded-lg transition-opacity hover:bg-slate-100">
@@ -1379,7 +1398,7 @@ function renderGaleri() {
               <svg class="w-3 h-3 inline mr-0.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9"/></svg>Padam
             </button>
           </div>
-        </div>`).join('')}
+        </div>`}).join('')}
     </div>`;
 
   // Event delegation — no inline handlers with long base64 strings
@@ -1388,7 +1407,7 @@ function renderGaleri() {
     const delBtn  = e.target.closest('[data-del]');
     if (viewBtn) { e.stopPropagation(); viewImgByIndex(actId, parseInt(viewBtn.dataset.view)); }
     if (delBtn)  { e.stopPropagation(); deleteImg(actId, parseInt(delBtn.dataset.del)); }
-  }, { once: true }); // once:true prevents duplicate listeners on re-render
+  }, { once: true });
 }
 
 function loadGaleri() { renderGaleri(); }
@@ -1459,12 +1478,32 @@ function _processImageFiles(files) {
 
   Promise.all(promises)
     .then(results => {
-      const ok = results.filter(r => r.ok).length;
-      const fail = results.filter(r => !r.ok).length;
+      const ok      = results.filter(r => r.ok && !r.local).length;
+      const local   = results.filter(r => r.ok && r.local).length;
+      const pending = results.filter(r => r.pending);
+      const fail    = results.filter(r => !r.ok && !r.pending).length;
+
       _showUploadProgress(false);
       renderGaleri();
-      if (ok > 0) toast(`${ok} gambar berjaya disimpan${fail ? `, ${fail} gagal` : ''}`, 'success');
-      else toast('Gagal menyimpan gambar', 'error');
+
+      if (pending.length) {
+        toast(`⚠️ ${pending.length} gambar gagal muat naik ke Drive — klik Retry`, 'error');
+        // Show retry button in upload log
+        const log = document.getElementById('upload-log');
+        if (log) {
+          log.insertAdjacentHTML('beforeend', `
+            <button onclick="retryPendingUploads()" class="mt-2 w-full flex items-center justify-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold px-3 py-2 rounded-lg transition-colors">
+              <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+              Cuba Semula Upload ke Drive
+            </button>`);
+        }
+      } else if (ok > 0) {
+        toast(`${ok} gambar berjaya dimuat naik ke Drive${fail ? `, ${fail} gagal` : ''}`, 'success');
+      } else if (local > 0) {
+        toast(`${local} gambar disimpan tempatan (tiada GAS URL)`, '');
+      } else if (fail > 0) {
+        toast('Gagal menyimpan gambar', 'error');
+      }
     });
 }
 
@@ -1473,18 +1512,18 @@ function _uploadOneImage(file, actId, idx, total) {
   return new Promise(resolve => {
     const reader = new FileReader();
     reader.onerror = () => {
-      _logUpload(file.name, 'error');
+      _logUpload(file.name, 'error', 'Gagal membaca fail');
       resolve({ ok: false, file });
     };
     reader.onload = async e => {
-      const dataUrl = e.target.result;             // full data:image/...;base64,xxx
-      const b64only = dataUrl.split(',')[1];        // just the base64 part
+      const dataUrl  = e.target.result;
+      const b64only  = dataUrl.split(',')[1];
       _logUpload(file.name, 'loading');
 
       if (settings.gasUrl) {
         // ── Google Drive upload path ──────────────────────────────────────────
         try {
-          const act = activities.find(a => a.id === actId) || {};
+          const act  = activities.find(a => a.id === actId) || {};
           const unit = units.find(u => u.id === act.unitId) || {};
           const payload = JSON.stringify({
             action:       'uploadImage',
@@ -1499,7 +1538,6 @@ function _uploadOneImage(file, actId, idx, total) {
             driveRootId:  settings.driveId || ''
           });
 
-          // Bug fix #2: send as text/plain to avoid CORS preflight
           const res = await fetch(settings.gasUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -1507,7 +1545,14 @@ function _uploadOneImage(file, actId, idx, total) {
           });
 
           if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          const json = await res.json();
+
+          // Parse response — handle both JSON and plain text responses
+          let json;
+          try { json = await res.json(); }
+          catch { throw new Error('Respons GAS bukan JSON yang sah'); }
+
+          // Check for GAS-level error
+          if (json.status === 'error') throw new Error(json.error || 'Ralat GAS');
 
           if (json.url) {
             addImageUrl(actId, json.url);
@@ -1515,22 +1560,25 @@ function _uploadOneImage(file, actId, idx, total) {
             _updateProgressBar(idx + 1, total);
             resolve({ ok: true });
           } else {
-            throw new Error(json.error || 'Tiada URL dikembalikan');
+            throw new Error('GAS tidak kembalikan URL gambar');
           }
         } catch (err) {
-          console.warn('GAS upload failed, saving locally:', err);
-          // Graceful fallback — save as base64 locally
-          addImageUrl(actId, dataUrl);
-          _logUpload(file.name, 'warning', '💾 Simpan tempatan (GAS gagal)');
+          console.error('GAS upload failed:', err);
+          // ── JANGAN simpan base64 — ia terlalu besar untuk sync ke Sheets ──
+          // Simpan sebagai tempatan dengan tanda khas supaya boleh retry
+          const pendingUrl = 'pending:' + dataUrl; // tanda pending retry
+          addImageUrl(actId, pendingUrl);
+          _logUpload(file.name, 'warning',
+            `⚠️ Simpan sementara — ${err.message.slice(0, 60)}`);
           _updateProgressBar(idx + 1, total);
-          resolve({ ok: true }); // still counts as OK (saved locally)
+          resolve({ ok: false, pending: true, file, actId, dataUrl });
         }
       } else {
-        // ── Local storage path (no GAS URL configured) ────────────────────────
+        // ── Tiada GAS URL — simpan base64 tempatan sahaja ────────────────────
         addImageUrl(actId, dataUrl);
-        _logUpload(file.name, 'success', '💾 Simpan tempatan');
+        _logUpload(file.name, 'warning', '💾 Tempatan (tiada GAS URL)');
         _updateProgressBar(idx + 1, total);
-        resolve({ ok: true });
+        resolve({ ok: true, local: true });
       }
     };
     reader.readAsDataURL(file);
@@ -1577,7 +1625,11 @@ function _logUpload(name, status, note = '') {
 function viewImgByIndex(actId, index) {
   const rec  = images.find(i => i.activityId === actId);
   const imgs = rec ? rec.images : [];
-  if (imgs[index]) viewImg(imgs[index]);
+  let url = imgs[index];
+  if (!url) return;
+  // Strip pending: prefix for display
+  if (url.startsWith('pending:')) url = url.slice('pending:'.length);
+  viewImg(url);
 }
 
 function addImageUrl(actId, url) {
@@ -1588,7 +1640,70 @@ function addImageUrl(actId, url) {
     images.push({ activityId: actId, images: [url] });
   }
   saveData();
-  autoSync('Images');
+  // Hanya sync ke Sheets jika URL adalah Drive URL (bukan base64/pending)
+  if (!url.startsWith('data:') && !url.startsWith('pending:')) {
+    autoSync('Images');
+  }
+}
+
+// Retry upload untuk gambar yang tersimpan sebagai 'pending:...'
+async function retryPendingUploads() {
+  if (!settings.gasUrl) { toast('Sila tetapkan GAS URL dahulu', 'error'); return; }
+
+  // Kumpul semua gambar pending
+  const pending = [];
+  images.forEach(rec => {
+    (rec.images || []).forEach((url, imgIdx) => {
+      if (url.startsWith('pending:')) {
+        pending.push({ actId: rec.activityId, imgIdx, dataUrl: url.slice('pending:'.length) });
+      }
+    });
+  });
+
+  if (!pending.length) { toast('Tiada gambar pending untuk dimuatnaik semula', ''); return; }
+
+  toast(`Mencuba semula ${pending.length} gambar...`, '');
+  let success = 0, fail = 0;
+
+  for (const item of pending) {
+    try {
+      const b64only = item.dataUrl.split(',')[1];
+      const mimeType = item.dataUrl.match(/data:([^;]+)/)?.[1] || 'image/jpeg';
+      const act  = activities.find(a => a.id === item.actId) || {};
+      const unit = units.find(u => u.id === act.unitId) || {};
+
+      const res = await fetch(settings.gasUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          action: 'uploadImage', base64: b64only, mimeType,
+          filename: `retry_${Date.now()}.jpg`,
+          activityId: item.actId, activityName: act.nama || '',
+          unitName: unit.nama || '', kategori: unit.kategori || '',
+          tahun: (act.tarikh || '').slice(0, 4) || String(new Date().getFullYear()),
+          driveRootId: settings.driveId || ''
+        })
+      });
+
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      if (json.status === 'error') throw new Error(json.error);
+      if (!json.url) throw new Error('Tiada URL dikembalikan');
+
+      // Ganti URL pending dengan Drive URL
+      const recIdx = images.findIndex(r => r.activityId === item.actId);
+      if (recIdx >= 0) images[recIdx].images[item.imgIdx] = json.url;
+      success++;
+    } catch (err) {
+      console.error('Retry failed:', err);
+      fail++;
+    }
+  }
+
+  saveData();
+  renderGaleri();
+  if (success > 0) autoSync('Images');
+  toast(`Retry: ${success} berjaya${fail ? `, ${fail} gagal` : ''}`, success > 0 ? 'success' : 'error');
 }
 
 function deleteImg(actId, imgIdx) {
@@ -1848,15 +1963,17 @@ async function autoSync(...tabNames) {
         ]
       },
       Images: {
-        rows: [
-          ['activityId','activityNama','imageIndex','url'],
-          ...images.flatMap(rec => {
-            const act = activities.find(a=>a.id===rec.activityId);
-            return (rec.images||[]).map((url,i) => [
-              rec.activityId, act?.nama||rec.activityId, i+1, url
-            ]);
-          })
-        ]
+        rows: (() => {
+          const header = ['activityId','activityNama','imageIndex','url'];
+          const dataRows = images.flatMap(rec => {
+            const act = activities.find(a => a.id === rec.activityId);
+            return (rec.images || [])
+              .map((url, i) => [rec.activityId, act?.nama || rec.activityId, i + 1, url])
+              // Langkau base64 — terlalu besar untuk Sheets (had 50,000 aksara/sel)
+              .filter(row => !String(row[3]).startsWith('data:'));
+          });
+          return [header, ...dataRows];
+        })()
       }
     };
 
@@ -2014,9 +2131,9 @@ async function syncGSheets() {
         ['activityId','activityNama','imageIndex','url'],
         ...images.flatMap(rec => {
           const act = activities.find(a => a.id === rec.activityId);
-          return (rec.images || []).map((url, i) => [
-            rec.activityId, act?.nama || rec.activityId, i + 1, url
-          ]);
+          return (rec.images || [])
+            .map((url, i) => [rec.activityId, act?.nama || rec.activityId, i + 1, url])
+            .filter(row => !String(row[3]).startsWith('data:')); // langkau base64
         })
       ]
     }
@@ -2539,7 +2656,18 @@ function resetCSV(){document.getElementById('csv-mapping').classList.add('hidden
 // MODAL HELPERS
 function openModal(id){
   document.getElementById(id).classList.add('open');
-  if(id==='modal-tambah-murid'){document.getElementById('murid-edit-id').value='';['murid-id','murid-nama','murid-kelas'].forEach(f=>document.getElementById(f).value='');document.getElementById('murid-jantina').value='L';populateUnitSelectByKat('murid-unit-bb','Badan Beruniform');populateUnitSelectByKat('murid-unit-kp','Kelab & Persatuan');populateUnitSelectByKat('murid-unit-sp','Sukan & Permainan');}
+  if(id==='modal-tambah-murid'){
+    // Hanya reset jika modal dibuka untuk TAMBAH BARU (bukan edit)
+    // Semasa edit, editMurid() sudah isi nilai — jangan tulis semula
+    const isEdit = document.getElementById('murid-edit-id').value;
+    if(!isEdit){
+      ['murid-id','murid-nama','murid-kelas'].forEach(f=>document.getElementById(f).value='');
+      document.getElementById('murid-jantina').value='L';
+      populateUnitSelectByKat('murid-unit-bb','Badan Beruniform');
+      populateUnitSelectByKat('murid-unit-kp','Kelab & Persatuan');
+      populateUnitSelectByKat('murid-unit-sp','Sukan & Permainan');
+    }
+  }
   if(id==='modal-tambah-unit'){document.getElementById('unit-edit-id').value='';['unit-nama','unit-guru','unit-guru2'].forEach(f=>document.getElementById(f).value='');}
   if(id==='modal-tambah-aktiviti'){document.getElementById('aktiviti-edit-id').value='';['aktiviti-nama','aktiviti-lokasi','aktiviti-deskripsi','aktiviti-tag'].forEach(f=>document.getElementById(f).value='');document.getElementById('aktiviti-tarikh').value=new Date().toISOString().slice(0,10);populateUnitSelect('aktiviti-unit');}
   if(id==='modal-tambah-penyertaan'){populateMuridSelect('penyertaan-murid');populateUnitSelect('penyertaan-unit');document.getElementById('penyertaan-nama').value='';document.getElementById('penyertaan-tarikh').value=new Date().toISOString().slice(0,10);}
