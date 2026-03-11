@@ -193,6 +193,11 @@ tailwind.config = {
         </div>
       </div>
       <div class="flex items-center gap-2">
+        <!-- Auto-sync status indicator -->
+        <div id="autosync-pill" class="hidden items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-lg transition-all">
+          <svg id="autosync-icon" class="w-3 h-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"></svg>
+          <span id="autosync-label"></span>
+        </div>
         <button onclick="syncGSheets()" class="flex items-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors border border-emerald-200">
           <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.338-2.32 5.75 5.75 0 011.244 11.096"/></svg>
           <span class="hidden sm:inline">Sync Sheets</span>
@@ -1162,9 +1167,9 @@ function saveMurid(){
   const unitId=unitBB||unitKP||unitSP||'';
   if(eid){const i=students.findIndex(s=>s.id===eid);students[i]={id,nama,kelas,jantina,unitId,unitBB,unitKP,unitSP};}
   else students.push({id,nama,kelas,jantina,unitId,unitBB,unitKP,unitSP});
-  saveData();closeModal('modal-tambah-murid');renderMurid();toast(eid?'Murid dikemaskini':'Murid berjaya ditambah','success');
+  saveData();closeModal('modal-tambah-murid');renderMurid();toast(eid?'Murid dikemaskini':'Murid berjaya ditambah','success');autoSync('Students');
 }
-function deleteMurid(id){if(!confirm('Padam murid ini?'))return;students=students.filter(s=>s.id!==id);saveData();renderMurid();toast('Murid dipadam','success');}
+function deleteMurid(id){if(!confirm('Padam murid ini?'))return;students=students.filter(s=>s.id!==id);saveData();renderMurid();toast('Murid dipadam','success');autoSync('Students');}
 
 // UNIT
 function renderUnit(){
@@ -1197,9 +1202,9 @@ function saveUnit(){
   if(!guru){toast('Sila isi nama Guru Penasihat 1','error');return;}
   if(eid){const i=units.findIndex(u=>u.id===eid);units[i]={...units[i],nama,kategori,guru,guru2};}
   else units.push({id:uid(),nama,kategori,guru,guru2});
-  saveData();closeModal('modal-tambah-unit');renderUnit();toast(eid?'Unit dikemaskini':'Unit berjaya ditambah','success');
+  saveData();closeModal('modal-tambah-unit');renderUnit();toast(eid?'Unit dikemaskini':'Unit berjaya ditambah','success');autoSync('Units');
 }
-function deleteUnit(id){if(!confirm('Padam unit ini?'))return;units=units.filter(u=>u.id!==id);saveData();renderUnit();toast('Unit dipadam','success');}
+function deleteUnit(id){if(!confirm('Padam unit ini?'))return;units=units.filter(u=>u.id!==id);saveData();renderUnit();toast('Unit dipadam','success');autoSync('Units');}
 
 // AKTIVITI
 function renderAktiviti(q=''){
@@ -1249,9 +1254,9 @@ function saveAktiviti(){
   if(!tarikh||!nama){toast('Sila isi tarikh dan nama aktiviti','error');return;}
   if(eid){const i=activities.findIndex(a=>a.id===eid);activities[i]={...activities[i],tarikh,nama,unitId,lokasi,deskripsi,tags};}
   else activities.push({id:uid(),tarikh,nama,unitId,lokasi,deskripsi,tags});
-  saveData();closeModal('modal-tambah-aktiviti');renderAktiviti();toast(eid?'Aktiviti dikemaskini':'Aktiviti berjaya ditambah','success');
+  saveData();closeModal('modal-tambah-aktiviti');renderAktiviti();toast(eid?'Aktiviti dikemaskini':'Aktiviti berjaya ditambah','success');autoSync('Activities');
 }
-function deleteAktiviti(id){if(!confirm('Padam aktiviti ini?'))return;activities=activities.filter(a=>a.id!==id);images=images.filter(i=>i.activityId!==id);saveData();renderAktiviti();toast('Aktiviti dipadam','success');}
+function deleteAktiviti(id){if(!confirm('Padam aktiviti ini?'))return;activities=activities.filter(a=>a.id!==id);images=images.filter(i=>i.activityId!==id);saveData();renderAktiviti();toast('Aktiviti dipadam','success');autoSync('Activities','Images');}
 
 // KEHADIRAN
 function loadKehadiran(){
@@ -1277,7 +1282,7 @@ function loadKehadiran(){
   </table></div>`;
 }
 function markAll(status){document.querySelectorAll('.att-status').forEach(s=>{s.value=status;s.className='att-status text-xs font-semibold px-2.5 py-1.5 rounded-lg border outline-none transition-all '+(status==='hadir'?'bg-emerald-50 text-emerald-700 border-emerald-200':'bg-red-50 text-red-700 border-red-200');});}
-function saveAttendance(){document.querySelectorAll('.att-status').forEach(el=>{const{sid,aid}=el.dataset;const idx=attendance.findIndex(a=>a.activityId===aid&&a.studentId===sid);if(idx>=0)attendance[idx].status=el.value;else attendance.push({activityId:aid,studentId:sid,status:el.value});});saveData();toast('Kehadiran disimpan','success');}
+function saveAttendance(){document.querySelectorAll('.att-status').forEach(el=>{const{sid,aid}=el.dataset;const idx=attendance.findIndex(a=>a.activityId===aid&&a.studentId===sid);if(idx>=0)attendance[idx].status=el.value;else attendance.push({activityId:aid,studentId:sid,status:el.value});});saveData();toast('Kehadiran disimpan','success');autoSync('Attendance');}
 
 // PENYERTAAN
 function renderPenyertaan(){
@@ -1296,9 +1301,9 @@ function savePenyertaan(){
   const unitId=document.getElementById('penyertaan-unit').value;
   if(!studentId||!nama||!tarikh){toast('Sila isi semua maklumat','error');return;}
   participations.push({id:uid(),studentId,nama,peringkat,tarikh,unitId});
-  saveData();closeModal('modal-tambah-penyertaan');renderPenyertaan();toast('Penyertaan berjaya ditambah','success');
+  saveData();closeModal('modal-tambah-penyertaan');renderPenyertaan();toast('Penyertaan berjaya ditambah','success');autoSync('Participation');
 }
-function deletePenyertaan(id){participations=participations.filter(p=>p.id!==id);saveData();renderPenyertaan();toast('Rekod dipadam','success');}
+function deletePenyertaan(id){participations=participations.filter(p=>p.id!==id);saveData();renderPenyertaan();toast('Rekod dipadam','success');autoSync('Participation');}
 
 // PENCAPAIAN
 function renderPencapaian(){
@@ -1320,9 +1325,9 @@ function savePencapaian(){
   const unitId=document.getElementById('pencapaian-unit').value;
   if(!studentId||!nama||!tarikh){toast('Sila isi semua maklumat','error');return;}
   achievements.push({id:uid(),studentId,nama,tahap,peringkat,tarikh,unitId});
-  saveData();closeModal('modal-tambah-pencapaian');renderPencapaian();toast('Pencapaian berjaya ditambah','success');
+  saveData();closeModal('modal-tambah-pencapaian');renderPencapaian();toast('Pencapaian berjaya ditambah','success');autoSync('Achievements');
 }
-function deleteAchievement(id){achievements=achievements.filter(a=>a.id!==id);saveData();renderPencapaian();toast('Rekod dipadam','success');}
+function deleteAchievement(id){achievements=achievements.filter(a=>a.id!==id);saveData();renderPencapaian();toast('Rekod dipadam','success');autoSync('Achievements');}
 
 // GALERI
 // ─── GALERI ──────────────────────────────────────────────────────────────────
@@ -1583,6 +1588,7 @@ function addImageUrl(actId, url) {
     images.push({ activityId: actId, images: [url] });
   }
   saveData();
+  autoSync('Images');
 }
 
 function deleteImg(actId, imgIdx) {
@@ -1595,6 +1601,7 @@ function deleteImg(actId, imgIdx) {
   saveData();
   renderGaleri();
   toast('Gambar dipadam', 'success');
+  autoSync('Images');
 }
 
 // CARIAN
@@ -1732,7 +1739,7 @@ async function saveTetapan() {
         ['daerah',   settings.daerah],
         ['pengetua', settings.pengetua],
         ['guruKoku', settings.guruKoku],
-        ['lastSaved', new Date().toISOString()],
+        ['lastSaved', new Date().toLocaleString('ms-MY')],
       ];
       await gasPost({ action: 'sync', tab: 'Settings', rows });
       toast('Tetapan disimpan & sync ke Sheets ✓', 'success');
@@ -1753,6 +1760,161 @@ function clearAllData() {
   renderDashboard();
   toast('Semua data tempatan telah dipadam', 'success');
   nav('dashboard', document.querySelector('.nav-item'));
+}
+
+// ─── AUTO-SYNC (latar belakang, hanya tab berkaitan) ─────────────────────────
+// Dipanggil selepas setiap simpan/padam. Tidak sekat UI, papar status kecil.
+
+let _autoSyncTimer = null; // debounce — elak sync berganda serentak
+
+async function autoSync(...tabNames) {
+  if (!settings.gasUrl) return; // GAS URL belum ditetapkan — senyap sahaja
+
+  // Debounce: jika ada sync tertangguh, batalkan dan mulakan semula
+  clearTimeout(_autoSyncTimer);
+  _autoSyncTimer = setTimeout(async () => {
+    _setAutoSyncPill('syncing');
+
+    // Bina baris untuk setiap tab yang perlu disync
+    const tabDefs = {
+      Settings: {
+        rows: [
+          ['key','value'],
+          ['gasUrl', settings.gasUrl||''], ['driveId', settings.driveId||''],
+          ['sekolah', settings.sekolah||''], ['daerah', settings.daerah||''],
+          ['pengetua', settings.pengetua||''], ['guruKoku', settings.guruKoku||''],
+          ['lastSync', new Date().toLocaleString('ms-MY')],
+        ]
+      },
+      Students: {
+        rows: [
+          ['id','nama','kelas','jantina','unitBB','unitBBNama','unitKP','unitKPNama','unitSP','unitSPNama'],
+          ...students.map(s => [
+            s.id, s.nama, s.kelas, s.jantina,
+            s.unitBB||'', units.find(u=>u.id===s.unitBB)?.nama||'',
+            s.unitKP||'', units.find(u=>u.id===s.unitKP)?.nama||'',
+            s.unitSP||'', units.find(u=>u.id===s.unitSP)?.nama||'',
+          ])
+        ]
+      },
+      Units: {
+        rows: [
+          ['id','nama','kategori','guru','guru2'],
+          ...units.map(u => [u.id, u.nama, u.kategori, u.guru||'', u.guru2||''])
+        ]
+      },
+      Activities: {
+        rows: [
+          ['id','tarikh','nama','unitId','unitNama','lokasi','deskripsi','tags'],
+          ...activities.map(a => [
+            a.id, dateToSheets(a.tarikh), a.nama, a.unitId||'',
+            units.find(u=>u.id===a.unitId)?.nama||'',
+            a.lokasi||'', a.deskripsi||'', a.tags||''
+          ])
+        ]
+      },
+      Attendance: {
+        rows: [
+          ['activityId','activityNama','studentId','studentNama','status'],
+          ...attendance.map(att => [
+            att.activityId,
+            activities.find(a=>a.id===att.activityId)?.nama||att.activityId,
+            att.studentId,
+            students.find(s=>s.id===att.studentId)?.nama||att.studentId,
+            att.status
+          ])
+        ]
+      },
+      Participation: {
+        rows: [
+          ['id','studentId','studentNama','nama','peringkat','tarikh','unitId','unitNama'],
+          ...participations.map(p => [
+            p.id, p.studentId,
+            students.find(s=>s.id===p.studentId)?.nama||p.studentId,
+            p.nama, p.peringkat, dateToSheets(p.tarikh), p.unitId||'',
+            units.find(u=>u.id===p.unitId)?.nama||''
+          ])
+        ]
+      },
+      Achievements: {
+        rows: [
+          ['id','studentId','studentNama','nama','tahap','peringkat','tarikh','unitId','unitNama'],
+          ...achievements.map(a => [
+            a.id, a.studentId,
+            students.find(s=>s.id===a.studentId)?.nama||a.studentId,
+            a.nama, a.tahap, a.peringkat, dateToSheets(a.tarikh), a.unitId||'',
+            units.find(u=>u.id===a.unitId)?.nama||''
+          ])
+        ]
+      },
+      Images: {
+        rows: [
+          ['activityId','activityNama','imageIndex','url'],
+          ...images.flatMap(rec => {
+            const act = activities.find(a=>a.id===rec.activityId);
+            return (rec.images||[]).map((url,i) => [
+              rec.activityId, act?.nama||rec.activityId, i+1, url
+            ]);
+          })
+        ]
+      }
+    };
+
+    let fail = 0;
+    for (const name of tabNames) {
+      const def = tabDefs[name];
+      if (!def) continue;
+      try {
+        await gasPost({ action: 'sync', tab: name, rows: def.rows });
+      } catch(e) {
+        fail++;
+        console.warn('[autoSync] tab gagal:', name, e.message);
+      }
+    }
+
+    _setAutoSyncPill(fail === 0 ? 'ok' : 'error');
+  }, 300); // 300ms debounce
+}
+
+function _setAutoSyncPill(state) {
+  const pill  = document.getElementById('autosync-pill');
+  const icon  = document.getElementById('autosync-icon');
+  const label = document.getElementById('autosync-label');
+  if (!pill) return;
+
+  clearTimeout(pill._hideTimer);
+
+  const STATES = {
+    syncing: {
+      cls: 'flex bg-amber-50 text-amber-600 border border-amber-200',
+      svg: '<path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.338-2.32 5.75 5.75 0 011.244 11.096"/>',
+      text: 'Menyegerak...',
+      hide: 0
+    },
+    ok: {
+      cls: 'flex bg-emerald-50 text-emerald-600 border border-emerald-200',
+      svg: '<path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>',
+      text: '☁ Tersegerak',
+      hide: 3000
+    },
+    error: {
+      cls: 'flex bg-red-50 text-red-500 border border-red-200',
+      svg: '<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/>',
+      text: 'Sync gagal',
+      hide: 5000
+    }
+  };
+
+  const s = STATES[state] || STATES.ok;
+  pill.className = s.cls + ' items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-lg transition-all';
+  icon.innerHTML = s.svg;
+  label.textContent = s.text;
+
+  if (s.hide) {
+    pill._hideTimer = setTimeout(() => {
+      pill.className = 'hidden items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-lg transition-all';
+    }, s.hide);
+  }
 }
 
 // ─── SYNC SHEETS (pengguna biasa) ────────────────────────────────────────────
@@ -1776,7 +1938,7 @@ async function syncGSheets() {
         ['daerah',   settings.daerah   || ''],
         ['pengetua', settings.pengetua || ''],
         ['guruKoku', settings.guruKoku || ''],
-        ['lastSync', new Date().toISOString()],
+        ['lastSync', new Date().toLocaleString('ms-MY')],
       ]
     },
     {
@@ -1803,7 +1965,7 @@ async function syncGSheets() {
       rows: [
         ['id','tarikh','nama','unitId','unitNama','lokasi','deskripsi','tags'],
         ...activities.map(a => [
-          a.id, a.tarikh, a.nama, a.unitId || '',
+          a.id, dateToSheets(a.tarikh), a.nama, a.unitId || '',
           units.find(u => u.id === a.unitId)?.nama || '',
           a.lokasi || '', a.deskripsi || '', a.tags || ''
         ])
@@ -1816,7 +1978,7 @@ async function syncGSheets() {
         ...participations.map(p => [
           p.id, p.studentId,
           students.find(s => s.id === p.studentId)?.nama || p.studentId,
-          p.nama, p.peringkat, p.tarikh, p.unitId || '',
+          p.nama, p.peringkat, dateToSheets(p.tarikh), p.unitId || '',
           units.find(u => u.id === p.unitId)?.nama || ''
         ])
       ]
@@ -1828,7 +1990,7 @@ async function syncGSheets() {
         ...achievements.map(a => [
           a.id, a.studentId,
           students.find(s => s.id === a.studentId)?.nama || a.studentId,
-          a.nama, a.tahap, a.peringkat, a.tarikh, a.unitId || '',
+          a.nama, a.tahap, a.peringkat, dateToSheets(a.tarikh), a.unitId || '',
           units.find(u => u.id === a.unitId)?.nama || ''
         ])
       ]
@@ -2034,9 +2196,19 @@ function _applyImport(tab, headers, body, mode) {
     const v = r[i];
     if (v === null || v === undefined) return fallback;
     // Google Sheets sometimes returns Date objects
-    if (v instanceof Date) return v.toISOString().slice(0, 10);
-    return String(v).trim();
+    if (v instanceof Date) return parseDateFromSheets(v);
+    let s = String(v).trim();
+    // Strip leading apostrophe (our date-text format)
+    if (s.startsWith("'")) s = s.slice(1).trim();
+    return s;
   };
+
+  // Date-aware cell read — normalizes to YYYY-MM-DD
+  const dateCell = (r, name) => parseDateFromSheets((() => {
+    const i = col(name); if (i === -1) return '';
+    const v = r[i]; if (v === null || v === undefined) return '';
+    return v;
+  })());
 
   // Filter out truly empty rows (all cells empty)
   const cleanBody = body.filter(r =>
@@ -2099,7 +2271,7 @@ function _applyImport(tab, headers, body, mode) {
   else if (tab === 'Activities') {
     const incoming = cleanBody.map(r => ({
       id:        cell(r, 'id') || uid(),
-      tarikh:    cell(r, 'tarikh'),
+      tarikh:    dateCell(r, 'tarikh'),
       nama:      cell(r, 'nama'),
       unitId:    _resolveUnitId(cell(r,'unitid'), cell(r,'unitnama')),
       lokasi:    cell(r, 'lokasi'),
@@ -2123,7 +2295,7 @@ function _applyImport(tab, headers, body, mode) {
       studentId: cell(r, 'studentid'),
       nama:      cell(r, 'nama'),
       peringkat: cell(r, 'peringkat', 'Sekolah'),
-      tarikh:    cell(r, 'tarikh'),
+      tarikh:    dateCell(r, 'tarikh'),
       unitId:    _resolveUnitId(cell(r,'unitid'), cell(r,'unitnama')),
     })).filter(p => p.studentId && p.nama);
     if (mode === 'replace') { participations = incoming; }
@@ -2141,7 +2313,7 @@ function _applyImport(tab, headers, body, mode) {
       nama:      cell(r, 'nama'),
       tahap:     cell(r, 'tahap', 'Penyertaan'),
       peringkat: cell(r, 'peringkat', 'Sekolah'),
-      tarikh:    cell(r, 'tarikh'),
+      tarikh:    dateCell(r, 'tarikh'),
       unitId:    _resolveUnitId(cell(r,'unitid'), cell(r,'unitnama')),
     })).filter(a => a.studentId && a.nama);
     if (mode === 'replace') { achievements = incoming; }
@@ -2445,7 +2617,51 @@ async function quickImportFromSheets() {
   await importFromSheets();
 }
 
-// ─── FIRST RUN SETUP ─────────────────────────────────────────────────────────
+// ─── DATE HELPERS ─────────────────────────────────────────────────────────────
+
+// Format tarikh untuk dihantar ke Google Sheets.
+// Prefix apostrophe (') memaksa Sheets simpan sebagai teks — mencegah auto-convert ke Date.
+// Format output: 'd/MM/YYYY'  contoh: '9/06/2026
+function dateToSheets(val) {
+  if (!val) return '';
+  // Parse YYYY-MM-DD (format simpan dalam sistem)
+  const m = String(val).trim().match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (m) return `'${parseInt(m[3])}/${m[2]}/${m[1]}`;
+  return `'${String(val).trim()}`;
+}
+
+// Normalkan tarikh dari Google Sheets ke format YYYY-MM-DD.
+// Handles: '9/06/2026  |  9/6/2026  |  2026-04-09T16:00:00.000Z  |  2026-04-09  |  Date object
+function parseDateFromSheets(raw) {
+  if (!raw && raw !== 0) return '';
+  // Native JS Date object (GAS sometimes returns these)
+  if (raw instanceof Date) {
+    const y = raw.getFullYear();
+    const m = String(raw.getMonth()+1).padStart(2,'0');
+    const d = String(raw.getDate()).padStart(2,'0');
+    return `${y}-${m}-${d}`;
+  }
+  let s = String(raw).trim();
+  // Strip leading apostrophe (our own format)
+  if (s.startsWith("'")) s = s.slice(1).trim();
+  // Already YYYY-MM-DD
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  // ISO datetime: 2026-04-09T16:00:00.000Z
+  const iso = s.match(/^(\d{4})-(\d{2})-(\d{2})T/);
+  if (iso) return `${iso[1]}-${iso[2]}-${iso[3]}`;
+  // d/MM/YYYY or d/M/YYYY or d-M-YYYY or d.M.YYYY
+  const dmy = s.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})$/);
+  if (dmy) {
+    const [,d,m,y] = dmy;
+    return `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
+  }
+  // YYYY/MM/DD
+  const ymd = s.match(/^(\d{4})[\/\.](\d{2})[\/\.](\d{2})$/);
+  if (ymd) return `${ymd[1]}-${ymd[2]}-${ymd[3]}`;
+  return s; // fallback — return as-is
+}
+
+
 
 function _isFirstRun() {
   return !localStorage.getItem('koku_units') &&
