@@ -609,11 +609,11 @@ M003,Ravi Kumar,Tahun 6 Hijau,L,Kadet Remaja Sekolah</pre>
             <input id="rpt-tahun" type="number" value="2026" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-700 bg-slate-50 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all outline-none">
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Pengetua / Guru Besar</label>
+            <label id="lbl-rpt-pengetua" class="block text-xs font-semibold text-slate-600 mb-1.5">Pengetua / Guru Besar</label>
             <input id="rpt-pengetua" placeholder="Nama Pengetua" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-700 bg-slate-50 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all outline-none">
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1.5">PK Kokurikulum</label>
+            <label id="lbl-rpt-guru" class="block text-xs font-semibold text-slate-600 mb-1.5">PK Kokurikulum</label>
             <input id="rpt-guru" placeholder="Nama Guru" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-700 bg-slate-50 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all outline-none">
           </div>
         </div>
@@ -679,22 +679,34 @@ M003,Ravi Kumar,Tahun 6 Hijau,L,Kadet Remaja Sekolah</pre>
             </div>
             <div class="grid grid-cols-2 gap-3">
               <div>
-                <label class="block text-xs font-semibold text-slate-600 mb-1.5">👤 Nama Pengetua</label>
-                <input id="set-pengetua" placeholder="Nama Pengetua" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-700 bg-slate-50 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all outline-none">
+                <label class="block text-xs font-semibold text-slate-600 mb-1.5">👤 Nama (Kanan Tandatangan)</label>
+                <div class="flex gap-2">
+                  <select id="set-jawatan-gb" class="border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-700 bg-slate-50 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all outline-none flex-shrink-0">
+                    <option value="Pengetua">Pengetua</option>
+                    <option value="Guru Besar">Guru Besar</option>
+                  </select>
+                  <input id="set-pengetua" placeholder="Nama penuh" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-700 bg-slate-50 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all outline-none">
+                </div>
               </div>
               <div>
-                <label class="block text-xs font-semibold text-slate-600 mb-1.5">📚 PK Kokurikulum</label>
-                <input id="set-guru-koku" placeholder="Nama Guru" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-700 bg-slate-50 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all outline-none">
+                <label class="block text-xs font-semibold text-slate-600 mb-1.5">📚 Nama (Kiri Tandatangan)</label>
+                <div class="flex gap-2">
+                  <select id="set-jawatan-pk" class="border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-700 bg-slate-50 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all outline-none flex-shrink-0">
+                    <option value="PK Kokurikulum">PK Kokurikulum</option>
+                    <option value="SU Kokurikulum">SU Kokurikulum</option>
+                  </select>
+                  <input id="set-guru-koku" placeholder="Nama penuh" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-700 bg-slate-50 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all outline-none">
+                </div>
               </div>
             </div>
             <div class="grid grid-cols-2 gap-3">
               <div>
-                <label class="block text-xs font-semibold text-slate-600 mb-1.5">🖊️ URL Tandatangan PK Kokurikulum</label>
+                <label class="block text-xs font-semibold text-slate-600 mb-1.5">🖊️ URL Tandatangan (Kiri — PK/SU Kokurikulum)</label>
                 <input id="set-sig-pk" placeholder="https://..." class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-700 bg-slate-50 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all outline-none">
                 <p class="text-[10px] text-slate-400 mt-1">URL imej tandatangan (PNG/JPG, latar telus lebih kemas)</p>
               </div>
               <div>
-                <label class="block text-xs font-semibold text-slate-600 mb-1.5">🖊️ URL Tandatangan Guru Besar</label>
+                <label class="block text-xs font-semibold text-slate-600 mb-1.5">🖊️ URL Tandatangan (Kanan — Pengetua/Guru Besar)</label>
                 <input id="set-sig-gb" placeholder="https://..." class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-700 bg-slate-50 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all outline-none">
                 <p class="text-[10px] text-slate-400 mt-1">URL imej tandatangan (PNG/JPG, latar telus lebih kemas)</p>
               </div>
@@ -1063,7 +1075,7 @@ function loadData(){
   students=DB.get('students');units=DB.get('units');activities=DB.get('activities');
   attendance=DB.get('attendance');participations=DB.get('participations');
   achievements=DB.get('achievements');images=DB.get('images');
-  settings=DB.getSingle('settings',{gasUrl:'https://script.google.com/macros/s/AKfycbyngzL0CyuMGp3HpsHlVii4WDvJgKK75Uew5wIv4xggvLAC0eUeen2uNC8kX7Ag_Z08rw/exec',driveId:'1PiLRDNLB18cQcBnu-TLjYghR3BrqjeO-',sekolah:'',daerah:'',pengetua:'',guruKoku:'',sigPk:'',sigGb:'',logoUrl:'https://i.postimg.cc/G23tcFnW/Logo-SK-Adin.png',appTitle:'Kokurikulum Pro',appSubtitle:'Sistem Pelaporan Sekolah'});
+  settings=DB.getSingle('settings',{gasUrl:'https://script.google.com/macros/s/AKfycbyngzL0CyuMGp3HpsHlVii4WDvJgKK75Uew5wIv4xggvLAC0eUeen2uNC8kX7Ag_Z08rw/exec',driveId:'1PiLRDNLB18cQcBnu-TLjYghR3BrqjeO-',sekolah:'',daerah:'',pengetua:'',guruKoku:'',sigPk:'',sigGb:'',jawatanGb:'Pengetua',jawatanPk:'PK Kokurikulum',logoUrl:'https://i.postimg.cc/G23tcFnW/Logo-SK-Adin.png',appTitle:'Kokurikulum Pro',appSubtitle:'Sistem Pelaporan Sekolah'});
 }
 function saveData(){
   DB.set('students',students);DB.set('units',units);DB.set('activities',activities);
@@ -1878,10 +1890,12 @@ function renderRankingMurid(){
 
 // LAPORAN
 function janaLaporan(){
-  const sekolah  = document.getElementById('rpt-sekolah').value || settings.sekolah  || 'Sekolah';
-  const tahun    = document.getElementById('rpt-tahun').value   || '2026';
-  const pengetua = document.getElementById('rpt-pengetua').value|| '—';
-  const pkKoku   = document.getElementById('rpt-guru').value    || '—';
+  const sekolah    = document.getElementById('rpt-sekolah').value || settings.sekolah  || 'Sekolah';
+  const tahun      = document.getElementById('rpt-tahun').value   || '2026';
+  const pengetua   = document.getElementById('rpt-pengetua').value|| '—';
+  const pkKoku     = document.getElementById('rpt-guru').value    || '—';
+  const jawatanGb  = settings.jawatanGb || 'Pengetua';
+  const jawatanPk  = settings.jawatanPk || 'PK Kokurikulum';
   const fa       = activities.filter(a => a.tarikh?.startsWith(tahun));
   const fach     = achievements.filter(a => a.tarikh?.startsWith(tahun));
   const ranked   = [...students].map(s => { const sc = getMuridScore(s.id); return {...s,...sc,score:sc.johan*4+sc.kedua*3+sc.ketiga*2+sc.penyertaan}; }).sort((a,b)=>b.score-a.score).slice(0,5);
@@ -2055,20 +2069,20 @@ function janaLaporan(){
         ${_sigImg(sigPk)}
         <div style="border-top:1px solid #334155;padding-top:6px">
           <div style="font-weight:700;color:#0f172a">${pkKoku}</div>
-          <div style="color:#64748b;margin-top:2px">PK Kokurikulum</div>
+          <div style="color:#64748b;margin-top:2px">${jawatanPk}</div>
         </div>
       </div>
       <div>
         ${_sigImg(sigGb)}
         <div style="border-top:1px solid #334155;padding-top:6px">
           <div style="font-weight:700;color:#0f172a">${pengetua}</div>
-          <div style="color:#64748b;margin-top:2px">Pengetua / Guru Besar</div>
+          <div style="color:#64748b;margin-top:2px">${jawatanGb}</div>
         </div>
       </div>
     </div>`;
 
   // ── Assemble full report ───────────────────────────────────────────────────
-  window._laporanData = { sekolah, tahun, pengetua, pkKoku, sigPk, sigGb, logoUrl: settings.logoUrl||'https://i.postimg.cc/G23tcFnW/Logo-SK-Adin.png', statCards, unitSections, pencapaianTable, muridTable, aktivitiTable, imgSectionPrint, sigBlock };
+  window._laporanData = { sekolah, tahun, pengetua, pkKoku, jawatanGb, jawatanPk, sigPk, sigGb, logoUrl: settings.logoUrl||'https://i.postimg.cc/G23tcFnW/Logo-SK-Adin.png', statCards, unitSections, pencapaianTable, muridTable, aktivitiTable, imgSectionPrint, sigBlock };
 
   const html = `<div id="report-preview" style="font-family:'DM Sans',sans-serif;background:white;padding:40px;max-width:860px;margin:0 auto;color:#1e293b">
     <!-- Cover -->
@@ -2077,7 +2091,7 @@ function janaLaporan(){
       <div style="font-size:11px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:2px">Laporan Tahunan</div>
       <div style="font-size:26px;font-weight:700;color:#0f172a;margin:6px 0 4px">Aktiviti Kokurikulum</div>
       <div style="font-size:20px;font-weight:700;color:#0284c7;margin-bottom:6px">${sekolah}</div>
-      <div style="font-size:12px;color:#64748b">Tahun ${tahun} &nbsp;&bull;&nbsp; Pengetua: ${pengetua} &nbsp;&bull;&nbsp; PK Kokurikulum: ${pkKoku}</div>
+      <div style="font-size:12px;color:#64748b">Tahun ${tahun} &nbsp;&bull;&nbsp; ${jawatanGb}: ${pengetua} &nbsp;&bull;&nbsp; ${jawatanPk}: ${pkKoku}</div>
     </div>
     <!-- Stat cards -->
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:32px">${statCards}</div>
@@ -2183,7 +2197,7 @@ function previewPDF() {
     <div style="font-size:10px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:2.5px">Laporan Tahunan</div>
     <div style="font-size:24px;font-weight:700;color:#0f172a;margin:5px 0 3px">Aktiviti Kokurikulum</div>
     <div style="font-size:18px;font-weight:700;color:#0284c7;margin-bottom:5px">${data.sekolah}</div>
-    <div style="font-size:11px;color:#64748b">Tahun ${data.tahun} &bull; Pengetua: ${data.pengetua} &bull; PK Kokurikulum: ${data.pkKoku}</div>
+    <div style="font-size:11px;color:#64748b">Tahun ${data.tahun} &bull; ${data.jawatanGb||'Pengetua'}: ${data.pengetua} &bull; ${data.jawatanPk||'PK Kokurikulum'}: ${data.pkKoku}</div>
   </div>
   <!-- Stat cards -->
   <div class="stat-grid">${data.statCards}</div>
@@ -2213,6 +2227,18 @@ function previewPDF() {
 
 // TETAPAN
 // ─── TETAPAN ─────────────────────────────────────────────────────────────────
+
+// ─── JAWATAN: Kemaskini label borang laporan apabila jawatan ditukar ─────────
+function _applyJawatan() {
+  const jGb = document.getElementById('set-jawatan-gb')?.value || settings.jawatanGb || 'Pengetua';
+  const jPk = document.getElementById('set-jawatan-pk')?.value || settings.jawatanPk || 'PK Kokurikulum';
+  const lGb = document.getElementById('lbl-rpt-pengetua');
+  const lPk = document.getElementById('lbl-rpt-guru');
+  if (lGb) lGb.textContent = jGb;
+  if (lPk) lPk.textContent = jPk;
+  // Update sig label hints too
+  const sigPkLbl = document.querySelector('label[for="set-sig-pk"], label:has(+ div > #set-sig-pk)');
+}
 
 // ─── BRANDING: Kemaskini logo, tajuk, favicon apabila tetapan berubah ────────
 function _applyBranding() {
@@ -2257,9 +2283,12 @@ function loadTetapan() {
   document.getElementById('set-guru-koku').value  = settings.guruKoku  || '';
   document.getElementById('set-sig-pk').value     = settings.sigPk     || '';
   document.getElementById('set-sig-gb').value     = settings.sigGb     || '';
+  document.getElementById('set-jawatan-gb').value = settings.jawatanGb || 'Pengetua';
+  document.getElementById('set-jawatan-pk').value = settings.jawatanPk || 'PK Kokurikulum';
   document.getElementById('set-logo-url').value   = settings.logoUrl   || '';
   document.getElementById('set-app-title').value  = settings.appTitle  || '';
   document.getElementById('set-app-subtitle').value = settings.appSubtitle || '';
+  _applyJawatan();
 }
 
 async function saveTetapan() {
@@ -2271,6 +2300,8 @@ async function saveTetapan() {
   settings.guruKoku = document.getElementById('set-guru-koku').value.trim();
   settings.sigPk       = document.getElementById('set-sig-pk').value.trim();
   settings.sigGb       = document.getElementById('set-sig-gb').value.trim();
+  settings.jawatanGb   = document.getElementById('set-jawatan-gb').value;
+  settings.jawatanPk   = document.getElementById('set-jawatan-pk').value;
   settings.logoUrl     = document.getElementById('set-logo-url').value.trim();
   settings.appTitle    = document.getElementById('set-app-title').value.trim();
   settings.appSubtitle = document.getElementById('set-app-subtitle').value.trim();
@@ -2293,6 +2324,8 @@ async function saveTetapan() {
         ['guruKoku', settings.guruKoku],
         ['sigPk',       settings.sigPk],
         ['sigGb',       settings.sigGb],
+        ['jawatanGb',   settings.jawatanGb],
+        ['jawatanPk',   settings.jawatanPk],
         ['logoUrl',     settings.logoUrl],
         ['appTitle',    settings.appTitle],
         ['appSubtitle', settings.appSubtitle],
@@ -2341,6 +2374,7 @@ async function autoSync(...tabNames) {
           ['sekolah', settings.sekolah||''], ['daerah', settings.daerah||''],
           ['pengetua', settings.pengetua||''], ['guruKoku', settings.guruKoku||''],
           ['sigPk', settings.sigPk||''], ['sigGb', settings.sigGb||''],
+          ['jawatanGb', settings.jawatanGb||'Pengetua'], ['jawatanPk', settings.jawatanPk||'PK Kokurikulum'],
           ['logoUrl', settings.logoUrl||''], ['appTitle', settings.appTitle||''], ['appSubtitle', settings.appSubtitle||''],
           ['lastSync', new Date().toLocaleString('ms-MY')],
         ]
@@ -3664,6 +3698,12 @@ function init(){
   ['set-logo-url','set-app-title','set-app-subtitle'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.addEventListener('input', _liveApplyBranding);
+  });
+
+  // Real-time jawatan preview — label borang laporan bertukar serta-merta
+  ['set-jawatan-gb','set-jawatan-pk'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('change', _applyJawatan);
   });
 }
 
