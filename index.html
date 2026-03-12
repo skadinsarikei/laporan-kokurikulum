@@ -361,7 +361,7 @@ M003,Ravi Kumar,Tahun 6 Hijau,L,Kadet Remaja Sekolah</pre>
       <div class="bg-white rounded-2xl ring-1 ring-slate-200 overflow-hidden">
         <div class="px-5 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3">
           <h2 class="font-serif text-slate-800 font-semibold">Unit Kokurikulum</h2>
-          <button onclick="openModal('modal-tambah-unit')" class="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3.5 py-2 rounded-lg transition-colors">
+          <button onclick="document.getElementById('unit-edit-id').value='';openModal('modal-tambah-unit')" class="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3.5 py-2 rounded-lg transition-colors">
             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg> Tambah Unit
           </button>
         </div>
@@ -392,7 +392,7 @@ M003,Ravi Kumar,Tahun 6 Hijau,L,Kadet Remaja Sekolah</pre>
       <div class="bg-white rounded-2xl ring-1 ring-slate-200 overflow-hidden">
         <div class="px-5 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3">
           <h2 class="font-serif text-slate-800 font-semibold">Aktiviti Kokurikulum</h2>
-          <button onclick="openModal('modal-tambah-aktiviti')" class="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3.5 py-2 rounded-lg transition-colors">
+          <button onclick="document.getElementById('aktiviti-edit-id').value='';openModal('modal-tambah-aktiviti')" class="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3.5 py-2 rounded-lg transition-colors">
             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg> Tambah Aktiviti
           </button>
         </div>
@@ -645,11 +645,26 @@ M003,Ravi Kumar,Tahun 6 Hijau,L,Kadet Remaja Sekolah</pre>
           <div class="space-y-3">
             <div>
               <label class="block text-xs font-semibold text-slate-600 mb-1.5">🔗 Google Apps Script URL</label>
-              <input id="set-gas-url" placeholder="https://script.google.com/macros/s/..." class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-700 bg-slate-50 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all outline-none">
+              <div class="flex gap-2">
+                <input id="set-gas-url" placeholder="https://script.google.com/macros/s/..." class="flex-1 border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-700 bg-slate-50 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all outline-none">
+                <button onclick="testGasConnection()" class="flex-shrink-0 flex items-center gap-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold px-3 py-2.5 rounded-xl transition-colors border border-blue-200 whitespace-nowrap">
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 010 1.972l-11.54 6.347a1.125 1.125 0 01-1.667-.986V5.653z"/></svg>
+                  Uji
+                </button>
+              </div>
+              <!-- Diagnostic panel -->
+              <div id="gas-test-result" class="hidden mt-2 rounded-xl px-3 py-2.5 text-xs font-mono break-all"></div>
             </div>
             <div>
               <label class="block text-xs font-semibold text-slate-600 mb-1.5">📁 Google Drive Root Folder ID</label>
-              <input id="set-drive-id" placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-700 bg-slate-50 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all outline-none">
+              <div class="flex gap-2">
+                <input id="set-drive-id" placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs" class="flex-1 border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-700 bg-slate-50 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all outline-none">
+                <button onclick="testDriveConnection()" class="flex-shrink-0 flex items-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-semibold px-3 py-2.5 rounded-xl transition-colors border border-emerald-200 whitespace-nowrap">
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
+                  Uji Drive
+                </button>
+              </div>
+              <div id="drive-test-result" class="hidden mt-2 rounded-xl px-3 py-2.5 text-xs font-mono break-all"></div>
             </div>
             <div class="grid grid-cols-2 gap-3">
               <div>
@@ -1014,7 +1029,7 @@ function loadData(){
   students=DB.get('students');units=DB.get('units');activities=DB.get('activities');
   attendance=DB.get('attendance');participations=DB.get('participations');
   achievements=DB.get('achievements');images=DB.get('images');
-  settings=DB.getSingle('settings',{gasUrl:'https://script.google.com/macros/s/AKfycbxk4BuTn0IK4j8RYiIKbFk_EaG8AroTrejXoloTP8uRkWgvF2MGjDyTv9c2TSxm_d8tlQ/exec',driveId:'1PiLRDNLB18cQcBnu-TLjYghR3BrqjeO-',sekolah:'',daerah:'',pengetua:'',guruKoku:''});
+  settings=DB.getSingle('settings',{gasUrl:'https://script.google.com/macros/s/AKfycbyngzL0CyuMGp3HpsHlVii4WDvJgKK75Uew5wIv4xggvLAC0eUeen2uNC8kX7Ag_Z08rw/exec',driveId:'1PiLRDNLB18cQcBnu-TLjYghR3BrqjeO-',sekolah:'',daerah:'',pengetua:'',guruKoku:''});
 }
 function saveData(){
   DB.set('students',students);DB.set('units',units);DB.set('activities',activities);
@@ -1195,7 +1210,7 @@ function renderUnit(){
     </tr>`;}).join('');
 }
 function filterUnit(cat,el){currentUnitFilter=cat;document.querySelectorAll('.unit-tab').forEach(t=>{t.className='unit-tab whitespace-nowrap px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all';});el.className='unit-tab whitespace-nowrap px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-white transition-all';renderUnit();}
-function editUnit(id){const u=units.find(x=>x.id===id);if(!u)return;document.getElementById('unit-edit-id').value=u.id;document.getElementById('unit-nama').value=u.nama;document.getElementById('unit-kategori').value=u.kategori;document.getElementById('unit-guru').value=u.guru||'';document.getElementById('unit-guru2').value=u.guru2||'';openModal('modal-tambah-unit');}
+function editUnit(id){const u=units.find(x=>x.id===id);if(!u)return;document.getElementById('unit-edit-id').value=u.id;openModal('modal-tambah-unit');document.getElementById('unit-nama').value=u.nama;document.getElementById('unit-kategori').value=u.kategori;document.getElementById('unit-guru').value=u.guru||'';document.getElementById('unit-guru2').value=u.guru2||'';}
 function saveUnit(){
   const eid=document.getElementById('unit-edit-id').value;
   const nama=document.getElementById('unit-nama').value.trim();
@@ -1246,7 +1261,7 @@ function renderAktiviti(q=''){
     </div>`;}).join('');
 }
 function filterAktiviti(){renderAktiviti();}
-function editAktiviti(id){const a=activities.find(x=>x.id===id);if(!a)return;document.getElementById('aktiviti-edit-id').value=a.id;document.getElementById('aktiviti-tarikh').value=a.tarikh;document.getElementById('aktiviti-nama').value=a.nama;document.getElementById('aktiviti-lokasi').value=a.lokasi||'';document.getElementById('aktiviti-deskripsi').value=a.deskripsi||'';document.getElementById('aktiviti-tag').value=a.tags||'';populateUnitSelect('aktiviti-unit',a.unitId);openModal('modal-tambah-aktiviti');}
+function editAktiviti(id){const a=activities.find(x=>x.id===id);if(!a)return;document.getElementById('aktiviti-edit-id').value=a.id;openModal('modal-tambah-aktiviti');document.getElementById('aktiviti-tarikh').value=a.tarikh;document.getElementById('aktiviti-nama').value=a.nama;document.getElementById('aktiviti-lokasi').value=a.lokasi||'';document.getElementById('aktiviti-deskripsi').value=a.deskripsi||'';document.getElementById('aktiviti-tag').value=a.tags||'';populateUnitSelect('aktiviti-unit',a.unitId);}
 function saveAktiviti(){
   const eid=document.getElementById('aktiviti-edit-id').value;
   const tarikh=document.getElementById('aktiviti-tarikh').value;
@@ -1544,15 +1559,20 @@ function _uploadOneImage(file, actId, idx, total) {
             body: payload
           });
 
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
 
-          // Parse response — handle both JSON and plain text responses
+          // Baca sebagai teks dahulu — jika GAS redirect ke HTML, tangkap dengan jelas
+          const rawText = await res.text();
           let json;
-          try { json = await res.json(); }
-          catch { throw new Error('Respons GAS bukan JSON yang sah'); }
+          try {
+            json = JSON.parse(rawText);
+          } catch {
+            // Log 300 aksara pertama untuk diagnosis
+            console.error('GAS raw response (bukan JSON):', rawText.slice(0, 300));
+            throw new Error(`Respons GAS bukan JSON: ${rawText.slice(0, 100)}`);
+          }
 
-          // Check for GAS-level error
-          if (json.status === 'error') throw new Error(json.error || 'Ralat GAS');
+          if (json.status === 'error') throw new Error(json.error || 'Ralat GAS tidak diketahui');
 
           if (json.url) {
             addImageUrl(actId, json.url);
@@ -1560,7 +1580,7 @@ function _uploadOneImage(file, actId, idx, total) {
             _updateProgressBar(idx + 1, total);
             resolve({ ok: true });
           } else {
-            throw new Error('GAS tidak kembalikan URL gambar');
+            throw new Error('GAS tidak kembalikan URL. Respons: ' + JSON.stringify(json));
           }
         } catch (err) {
           console.error('GAS upload failed:', err);
@@ -2540,21 +2560,25 @@ function showGasCode() {
 // Sistem Kokurikulum Pro — Google Apps Script
 // Deploy sebagai: Web App | Execute as: Me | Access: Anyone
 // ═══════════════════════════════════════════════════════════
-var ROOT_FOLDER_ID = ''; // ID folder root Google Drive (optional)
+var ROOT_FOLDER_ID = '1PiLRDNLB18cQcBnu-TLjYghR3BrqjeO-';
 
 function doPost(e) {
   try {
     var data = JSON.parse(e.postData.contents);
     if (data.action === 'uploadImage') return uploadImageToDrive(data);
     if (data.action === 'sync')        return syncSheet(data);
-    return jsonOut({ status:'error', error:'Unknown action' });
-  } catch(err) { return jsonOut({ status:'error', error:err.message }); }
+    if (data.action === 'test')        return jsonOut({ status:'ok', message:'GAS berfungsi', time: new Date().toISOString() });
+    return jsonOut({ status:'error', error:'Unknown action: ' + data.action });
+  } catch(err) {
+    return jsonOut({ status:'error', error: err.message, stack: err.stack });
+  }
 }
 
 function doGet(e) {
   try {
     var ss    = SpreadsheetApp.getActiveSpreadsheet();
     var tab   = e.parameter.tab;
+    if (!tab) return jsonOut({ status:'ok', message:'GAS aktif', time: new Date().toISOString() });
     var sheet = ss.getSheetByName(tab);
     if (!sheet) return jsonOut({ data:[] });
     var vals  = sheet.getDataRange().getValues();
@@ -2576,27 +2600,86 @@ function syncSheet(data) {
 }
 
 function uploadImageToDrive(data) {
-  var rootId   = data.driveRootId || ROOT_FOLDER_ID;
-  var root     = rootId ? DriveApp.getFolderById(rootId) : DriveApp.getRootFolder();
-  var fYear    = getOrCreateFolder(root,  data.tahun    || String(new Date().getFullYear()));
-  var fKat     = getOrCreateFolder(fYear, data.kategori || 'Lain-lain');
-  var fUnit    = getOrCreateFolder(fKat,  sanitize(data.unitName     || 'Unit'));
-  var fAct     = getOrCreateFolder(fUnit, sanitize(data.activityName || data.activityId || 'Aktiviti'));
-  var mime     = data.mimeType || 'image/jpeg';
-  var fname    = data.filename || (data.activityId + '_' + Date.now() + '.jpg');
-  var file     = fAct.createFile(Utilities.newBlob(Utilities.base64Decode(data.base64), mime, fname));
-  file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-  return jsonOut({ status:'ok', url:'https://drive.google.com/uc?export=view&id='+file.getId(), driveId:file.getId() });
+  try {
+    var rootId = data.driveRootId || ROOT_FOLDER_ID;
+    var root;
+    try {
+      root = rootId ? DriveApp.getFolderById(rootId) : DriveApp.getRootFolder();
+    } catch(e) {
+      root = DriveApp.getRootFolder();
+    }
+
+    var tahun = data.tahun || String(new Date().getFullYear());
+    var fYear = getOrCreateFolder(root,  tahun);
+    var fKat  = getOrCreateFolder(fYear, data.kategori || 'Lain-lain');
+    var fUnit = getOrCreateFolder(fKat,  sanitize(data.unitName     || 'Unit'));
+    var fAct  = getOrCreateFolder(fUnit, sanitize(data.activityName || data.activityId || 'Aktiviti'));
+
+    var mime  = data.mimeType || 'image/jpeg';
+    var fname = data.filename || ('img_' + Date.now() + '.jpg');
+
+    // Decode base64 — strip whitespace/newlines yang mungkin ada
+    var b64clean = data.base64.replace(/\\s/g, '');
+    var blob = Utilities.newBlob(Utilities.base64Decode(b64clean), mime, fname);
+    var file = fAct.createFile(blob);
+
+    // Cuba buat public — jika gagal (sekatan domain), tetap kembalikan URL
+    var publicUrl;
+    try {
+      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+      publicUrl = 'https://drive.google.com/uc?export=view&id=' + file.getId();
+    } catch(shareErr) {
+      // Akaun sekolah mungkin sekat ANYONE_WITH_LINK
+      // Guna URL thumbnail yang masih boleh diakses dalam domain
+      publicUrl = 'https://drive.google.com/thumbnail?id=' + file.getId() + '&sz=w800';
+    }
+
+    return jsonOut({
+      status:  'ok',
+      url:     publicUrl,
+      fileId:  file.getId(),
+      folder:  fAct.getName()
+    });
+
+  } catch(err) {
+    return jsonOut({ status:'error', error: err.message, line: err.lineNumber });
+  }
 }
 
 function getOrCreateFolder(parent, name) {
-  var it = parent.getFoldersByName(name);
-  return it.hasNext() ? it.next() : parent.createFolder(name);
+  var safeName = sanitize(name) || 'Folder';
+  var it = parent.getFoldersByName(safeName);
+  return it.hasNext() ? it.next() : parent.createFolder(safeName);
 }
-function sanitize(s) { return s.replace(/[\\/:\\*?"<>|]/g,'_').trim(); }
+
+function sanitize(s) {
+  return String(s || '').replace(/[\\/:\\*?"<>|]/g, '_').trim().slice(0, 100) || 'Item';
+}
+
+// PENTING: Guna MimeType.TEXT (bukan JSON) untuk elak redirect GAS yang
+// menyebabkan browser terima HTML dan gagal parse JSON
 function jsonOut(obj) {
-  return ContentService.createTextOutput(JSON.stringify(obj))
-         .setMimeType(ContentService.MimeType.JSON);
+  return ContentService
+    .createTextOutput(JSON.stringify(obj))
+    .setMimeType(ContentService.MimeType.TEXT);
+}
+
+// ═══════════════════════════════════════════════════════════
+// LANGKAH WAJIB SELEPAS TAMPAL KOD:
+// 1. Klik Run > authoriseDrive
+// 2. Ikut arahan kebenaran (Allow)
+// 3. Deploy semula: Deploy > Manage Deployments > Edit > New version > Deploy
+// ═══════════════════════════════════════════════════════════
+function authoriseDrive() {
+  // Jalankan fungsi ini SEKALI untuk beri kebenaran Drive kepada GAS
+  try {
+    var folder = DriveApp.getFolderById(ROOT_FOLDER_ID);
+    Logger.log('Kebenaran Drive OK. Folder: ' + folder.getName());
+    Logger.log('Sekarang boleh deploy semula.');
+  } catch(e) {
+    Logger.log('Ralat: ' + e.message);
+    Logger.log('Pastikan ROOT_FOLDER_ID betul dan anda mempunyai akses ke folder tersebut.');
+  }
 }`;
 
   const pre = document.getElementById('gas-code-block');
@@ -2605,7 +2688,123 @@ function jsonOut(obj) {
   catch(e) { toast('Kod GAS dipaparkan — salin secara manual', ''); }
 }
 
-// ─── GAS POST helper (shared by sync + image upload) ─────────────────────────
+// ─── TEST GAS CONNECTION ──────────────────────────────────────────────────────
+async function testGasConnection() {
+  const urlInput = document.getElementById('set-gas-url');
+  const resultEl = document.getElementById('gas-test-result');
+  const url = (urlInput?.value || settings.gasUrl || '').trim();
+
+  if (!url) { toast('Sila isi GAS URL dahulu', 'error'); return; }
+  if (!resultEl) return;
+
+  resultEl.className = 'mt-2 rounded-xl px-3 py-2.5 text-xs font-mono break-all bg-amber-50 text-amber-700 border border-amber-200';
+  resultEl.textContent = '⏳ Menguji sambungan...';
+
+  try {
+    // Uji dengan GET — works dengan semua versi GAS (lama & baru)
+    const res = await fetch(url, { method: 'GET' });
+    const rawText = await res.text();
+
+    let parsed;
+    try { parsed = JSON.parse(rawText); } catch { parsed = null; }
+
+    if (!res.ok) {
+      resultEl.className = 'mt-2 rounded-xl px-3 py-2.5 text-xs font-mono break-all bg-red-50 text-red-600 border border-red-200';
+      resultEl.textContent = `❌ HTTP ${res.status} — ${rawText.slice(0, 200)}`;
+      return;
+    }
+
+    if (!parsed) {
+      resultEl.className = 'mt-2 rounded-xl px-3 py-2.5 text-xs font-mono break-all bg-red-50 text-red-600 border border-red-200';
+      resultEl.innerHTML = `❌ Respons bukan JSON. GAS mungkin belum deploy semula.<br><br>Raw (100 aksara pertama):<br>${rawText.slice(0,100).replace(/</g,'&lt;')}`;
+      return;
+    }
+
+    if (parsed.status === 'ok' || parsed.data !== undefined) {
+      resultEl.className = 'mt-2 rounded-xl px-3 py-2.5 text-xs font-mono break-all bg-emerald-50 text-emerald-700 border border-emerald-200';
+      resultEl.textContent = `✅ GAS berfungsi — sambungan OK (${parsed.message || parsed.time || new Date().toLocaleTimeString('ms-MY')})`;
+    } else {
+      resultEl.className = 'mt-2 rounded-xl px-3 py-2.5 text-xs font-mono break-all bg-red-50 text-red-600 border border-red-200';
+      resultEl.textContent = `⚠️ GAS ralat: ${parsed.error || JSON.stringify(parsed)}`;
+    }
+  } catch (err) {
+    resultEl.className = 'mt-2 rounded-xl px-3 py-2.5 text-xs font-mono break-all bg-red-50 text-red-600 border border-red-200';
+    resultEl.textContent = `❌ Gagal sambung: ${err.message}`;
+  }
+}
+
+
+// ─── TEST GOOGLE DRIVE CONNECTION ────────────────────────────────────────────
+async function testDriveConnection() {
+  const gasUrl  = (document.getElementById('set-gas-url')?.value  || settings.gasUrl  || '').trim();
+  const driveId = (document.getElementById('set-drive-id')?.value || settings.driveId || '').trim();
+  const resultEl = document.getElementById('drive-test-result');
+  if (!resultEl) return;
+
+  if (!gasUrl)  { toast('Sila isi GAS URL dahulu', 'error'); return; }
+  if (!driveId) { toast('Sila isi Drive Folder ID dahulu', 'error'); return; }
+
+  resultEl.className = 'mt-2 rounded-xl px-3 py-2.5 text-xs font-mono break-all bg-amber-50 text-amber-700 border border-amber-200';
+  resultEl.innerHTML = '⏳ Menghantar fail ujian ke Google Drive...';
+  resultEl.classList.remove('hidden');
+
+  try {
+    // 1×1 transparent PNG — gambar terkecil yang sah untuk uji upload
+    const tiny1x1png = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+
+    const res = await fetch(gasUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        action:       'uploadImage',
+        base64:       tiny1x1png,
+        mimeType:     'image/png',
+        filename:     'test_drive_' + Date.now() + '.png',
+        activityId:   'TEST',
+        activityName: 'Test Drive Connection',
+        unitName:     'Test',
+        kategori:     'Test',
+        tahun:        String(new Date().getFullYear()),
+        driveRootId:  driveId
+      })
+    });
+
+    if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
+
+    const rawText = await res.text();
+    let json;
+    try { json = JSON.parse(rawText); }
+    catch { throw new Error('Respons bukan JSON: ' + rawText.slice(0, 150)); }
+
+    if (json.status === 'error') throw new Error(json.error || JSON.stringify(json));
+
+    if (json.url) {
+      const sharingNote = json.url.includes('uc?export') ? '✅ Sharing awam (ANYONE_WITH_LINK) berjaya' : '⚠️ Sharing terhad — gambar mungkin tidak kelihatan pada peranti lain';
+      resultEl.className = 'mt-2 rounded-xl px-3 py-2.5 text-xs font-mono break-all bg-emerald-50 text-emerald-700 border border-emerald-200';
+      resultEl.innerHTML = `✅ Upload ke Drive berjaya!<br>🔗 <a href="${json.url}" target="_blank" class="underline">${json.url}</a><br>${sharingNote}`;
+    } else {
+      throw new Error('GAS tidak kembalikan URL. Respons: ' + JSON.stringify(json));
+    }
+
+  } catch (err) {
+    const isAuthError = err.message.includes('permission') || err.message.includes('auth') || err.message.includes('DriveApp');
+    resultEl.className = 'mt-2 rounded-xl px-3 py-2.5 text-xs font-mono break-all bg-red-50 text-red-600 border border-red-200';
+    if (isAuthError) {
+      resultEl.innerHTML = `❌ <b>Ralat Kebenaran Drive</b><br><br>
+        GAS belum diberi kebenaran untuk akses Google Drive.<br><br>
+        <b>Cara betulkan:</b><br>
+        1. Buka Apps Script editor<br>
+        2. Tampal kod GAS terbaru (klik "Papar / Salin Kod GAS" di bawah)<br>
+        3. Klik <b>Run ▶ → pilih "authoriseDrive"</b><br>
+        4. Klik <b>"Review permissions"</b> → pilih akaun → <b>"Allow"</b><br>
+        5. Lihat log: pastikan tertulis "Kebenaran Drive OK"<br>
+        6. <b>Deploy semula</b>: Deploy → Manage Deployments → ✏️ Edit → New version → Deploy`;
+    } else {
+      resultEl.innerHTML = `❌ <b>${err.message}</b><br><br>Semak:<br>• GAS sudah deploy semula (New Deployment)?<br>• Execute as: <b>Me</b> | Who has access: <b>Anyone</b><br>• Folder ID betul & GAS mempunyai akses ke folder`;
+    }
+  }
+}
+
 async function gasPost(payload) {
   const res = await fetch(settings.gasUrl, {
     method: 'POST',
@@ -2613,7 +2812,9 @@ async function gasPost(payload) {
     body: JSON.stringify(payload)
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json();
+  const text = await res.text();
+  try { return JSON.parse(text); }
+  catch { throw new Error('GAS response bukan JSON: ' + text.slice(0, 100)); }
 }
 
 // CSV
@@ -2657,8 +2858,6 @@ function resetCSV(){document.getElementById('csv-mapping').classList.add('hidden
 function openModal(id){
   document.getElementById(id).classList.add('open');
   if(id==='modal-tambah-murid'){
-    // Hanya reset jika modal dibuka untuk TAMBAH BARU (bukan edit)
-    // Semasa edit, editMurid() sudah isi nilai — jangan tulis semula
     const isEdit = document.getElementById('murid-edit-id').value;
     if(!isEdit){
       ['murid-id','murid-nama','murid-kelas'].forEach(f=>document.getElementById(f).value='');
@@ -2668,8 +2867,22 @@ function openModal(id){
       populateUnitSelectByKat('murid-unit-sp','Sukan & Permainan');
     }
   }
-  if(id==='modal-tambah-unit'){document.getElementById('unit-edit-id').value='';['unit-nama','unit-guru','unit-guru2'].forEach(f=>document.getElementById(f).value='');}
-  if(id==='modal-tambah-aktiviti'){document.getElementById('aktiviti-edit-id').value='';['aktiviti-nama','aktiviti-lokasi','aktiviti-deskripsi','aktiviti-tag'].forEach(f=>document.getElementById(f).value='');document.getElementById('aktiviti-tarikh').value=new Date().toISOString().slice(0,10);populateUnitSelect('aktiviti-unit');}
+  if(id==='modal-tambah-unit'){
+    const isEdit = document.getElementById('unit-edit-id').value;
+    if(!isEdit){
+      ['unit-nama','unit-guru','unit-guru2'].forEach(f=>document.getElementById(f).value='');
+      const kat = document.getElementById('unit-kategori');
+      if(kat) kat.value = 'Badan Beruniform';
+    }
+  }
+  if(id==='modal-tambah-aktiviti'){
+    const isEdit = document.getElementById('aktiviti-edit-id').value;
+    if(!isEdit){
+      ['aktiviti-nama','aktiviti-lokasi','aktiviti-deskripsi','aktiviti-tag'].forEach(f=>document.getElementById(f).value='');
+      document.getElementById('aktiviti-tarikh').value=new Date().toISOString().slice(0,10);
+      populateUnitSelect('aktiviti-unit');
+    }
+  }
   if(id==='modal-tambah-penyertaan'){populateMuridSelect('penyertaan-murid');populateUnitSelect('penyertaan-unit');document.getElementById('penyertaan-nama').value='';document.getElementById('penyertaan-tarikh').value=new Date().toISOString().slice(0,10);}
   if(id==='modal-tambah-pencapaian'){populateMuridSelect('pencapaian-murid');populateUnitSelect('pencapaian-unit');document.getElementById('pencapaian-nama').value='';document.getElementById('pencapaian-tarikh').value=new Date().toISOString().slice(0,10);}
 }
@@ -2801,41 +3014,62 @@ async function _autoImportOnFirstRun() {
   const gasUrl = settings.gasUrl;
   if (!gasUrl) return;
 
-  // Show a non-blocking loading overlay
   const overlay = document.getElementById('firstrun-overlay');
-  if (overlay) overlay.classList.remove('hidden');
 
-  const ALL_TABS = ['Settings','Units','Students','Activities','Participation','Achievements','Attendance','Images'];
-  let totalImported = 0;
+  // PENTING: Sentiasa sembunyikan overlay — walaupun berlaku ralat
+  const hideOverlay = () => { if (overlay) overlay.classList.add('hidden'); };
 
-  for (const tab of ALL_TABS) {
-    try {
-      const res = await fetch(gasUrl + '?tab=' + encodeURIComponent(tab));
-      if (!res.ok) continue;
-      const json = await res.json();
-      const rows = json.data || [];
-      if (rows.length < 2) continue;
-      const headers = rows[0].map(h => String(h).trim());
-      const body    = rows.slice(1);
-      totalImported += _applyImport(tab, headers, body, 'replace');
-    } catch(e) { /* silent — will just start with empty system */ }
+  // Had masa 8 saat — jika GAS lambat/hang, overlay tetap disembunyikan
+  const timeout = setTimeout(hideOverlay, 8000);
+
+  try {
+    if (overlay) overlay.classList.remove('hidden');
+
+    const ALL_TABS = ['Settings','Units','Students','Activities','Participation','Achievements','Attendance','Images'];
+    let totalImported = 0;
+
+    for (const tab of ALL_TABS) {
+      try {
+        // Setiap fetch ada had masa 5 saat sendiri
+        const controller = new AbortController();
+        const tabTimeout = setTimeout(() => controller.abort(), 5000);
+
+        const res = await fetch(gasUrl + '?tab=' + encodeURIComponent(tab), {
+          signal: controller.signal
+        });
+        clearTimeout(tabTimeout);
+
+        if (!res.ok) continue;
+        const text = await res.text();
+        let json;
+        try { json = JSON.parse(text); } catch { continue; }
+        const rows = json.data || [];
+        if (rows.length < 2) continue;
+        const headers = rows[0].map(h => String(h).trim());
+        const body    = rows.slice(1);
+        totalImported += _applyImport(tab, headers, body, 'replace');
+      } catch(e) { /* silent — tab ini dilangkau */ }
+    }
+
+    saveData();
+    DB.setSingle('settings', settings);
+    loadData();
+
+    if (totalImported > 0) {
+      toast(`Data dimuatkan dari Sheets — ${totalImported} rekod`, 'success');
+    }
+    renderDashboard();
+    const sb = document.getElementById('sidebar-school');
+    if (sb) sb.textContent = settings.sekolah || 'Nama Sekolah';
+    loadTetapan();
+
+  } catch(e) {
+    // Tangkap semua ralat — pastikan overlay sentiasa disembunyikan
+    console.warn('Auto-import failed:', e);
+  } finally {
+    clearTimeout(timeout);
+    hideOverlay();
   }
-
-  saveData();
-  DB.setSingle('settings', settings);
-  loadData();
-
-  if (overlay) overlay.classList.add('hidden');
-
-  renderDashboard();
-  const sb = document.getElementById('sidebar-school');
-  if (sb) sb.textContent = settings.sekolah || 'Nama Sekolah';
-  loadTetapan();
-
-  if (totalImported > 0) {
-    toast(`Data dimuatkan dari Sheets — ${totalImported} rekod`, 'success');
-  }
-  // If nothing imported (Sheets empty / unreachable), system starts empty — no error shown
 }
 
 // ─── DEMO DATA (manual only) ──────────────────────────────────────────────────
@@ -2878,6 +3112,16 @@ function init(){
   if (_isFirstRun()) {
     _autoImportOnFirstRun();
   }
+
+  // Jaga-jaga: Jika overlay masih kelihatan selepas 10 saat, sembunyikan paksa
+  // Ini mencegah sidebar/butang disekat jika _autoImportOnFirstRun hang
+  setTimeout(() => {
+    const overlay = document.getElementById('firstrun-overlay');
+    if (overlay && !overlay.classList.contains('hidden')) {
+      overlay.classList.add('hidden');
+      console.warn('firstrun-overlay force-hidden after 10s timeout');
+    }
+  }, 10000);
 }
 
 init();
